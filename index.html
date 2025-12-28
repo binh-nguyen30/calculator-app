@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Máy Tính">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%234285f4'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial'>🧮</text></svg>">
+  <title>Máy Tính</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .calculator {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 500px;
+      width: 100%;
+      margin: 0 auto;
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+    }
+
+    /* Phần trên: Lịch sử + Display - 2/5 màn hình */
+    .top-section {
+      height: 40%;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 20px;
+    }
+
+    .history-section {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      margin-bottom: 10px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .history-title {
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0.8;
+    }
+
+    .clear-history {
+      background: rgba(255, 107, 107, 0.8);
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .clear-history:active {
+      transform: scale(0.95);
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .history-item-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .history-item {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+      z-index: 2;
+    }
+
+    .history-item.swiped {
+      transform: translateX(-80px);
+    }
+
+    .history-actions {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      z-index: 1;
+    }
+
+    .edit-btn {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .edit-btn:active {
+      transform: scale(0.9);
+    }
+
+    .history-expression {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 2px;
+    }
+
+    .history-result {
+      font-size: 16px;
+      color: white;
+      font-weight: 600;
+    }
+
+    .no-history {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      padding: 20px;
+    }
+
+    .display {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 15px 20px;
+      color: white;
+      text-align: right;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .expression {
+      font-size: 16px;
+      opacity: 0.7;
+      margin-bottom: 8px;
+      min-height: 20px;
+      word-wrap: break-word;
+    }
+
+    .result {
+      font-size: 36px;
+      font-weight: 300;
+      line-height: 1.2;
+      word-wrap: break-word;
+    }
+
+    /* Phần dưới: Bàn phím - 3/5 màn hình */
+    .keyboard-section {
+      height: 60%;
+      padding: 10px 20px 20px 20px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      height: 100%;
+    }
+
+    button {
+      border: none;
+      border-radius: 18px;
+      font-size: 26px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: visible;
+    }
+
+    button:active {
+      transform: scale(0.95);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .number {
+      background: rgba(255, 255, 255, 0.95);
+      color: #333;
+    }
+
+    .operator {
+      background: #ff9500;
+      color: white;
+      position: relative;
+    }
+
+    .operator-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 14px;
+      opacity: 0.7;
+      font-weight: 600;
+    }
+
+    .function {
+      background: rgba(255, 255, 255, 0.3);
+      color: white;
+    }
+
+    .equals {
+      background: #34c759;
+      color: white;
+    }
+
+    .delete {
+      background: #ff6b6b;
+      color: white;
+      font-size: 22px;
+    }
+
+    .error {
+      color: #ff6b6b;
+    }
+
+    @media (max-width: 400px) {
+      .result {
+        font-size: 32px;
+      }
+      
+      button {
+        font-size: 22px;
+      }
+      
+      .operator-badge {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <!-- Phần trên: 2/5 màn hình -->
+    <div class="top-section">
+      <div class="history-section" id="historySection">
+        <div class="history-header">
+          <div class="history-title">📜 Lịch sử</div>
+          <button class="clear-history" onclick="clearHistory()">Xóa</button>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="no-history">Chưa có lịch sử</div>
+        </div>
+      </div>
+      
+      <div class="display">
+        <div class="expression" id="expression"></div>
+        <div class="result" id="result">0</div>
+      </div>
+    </div>
+
+    <!-- Phần dưới: 3/5 màn hình -->
+    <div class="keyboard-section">
+      <div class="buttons">
+        <button class="function" onclick="clearAll()">AC</button>
+        <button class="function" onclick="addParenthesis()">()</button>
+        <button class="delete" onclick="deleteLastChar()">⌫</button>
+        <button class="operator" id="divideBtn" onclick="addOperator('÷')">
+          ÷
+          <span class="operator-badge">√</span>
+        </button>
+
+        <button class="number" onclick="appendNumber('7')">7</button>
+        <button class="number" onclick="appendNumber('8')">8</button>
+        <button class="number" onclick="appendNumber('9')">9</button>
+        <button class="operator" id="multiplyBtn" onclick="addOperator('×')">
+          ×
+          <span class="operator-badge">^</span>
+        </button>
+
+        <button class="number" onclick="appendNumber('4')">4</button>
+        <button class="number" onclick="appendNumber('5')">5</button>
+        <button class="number" onclick="appendNumber('6')">6</button>
+        <button class="operator" id="minusBtn" onclick="addOperator('-')">
+          -
+          <span class="operator-badge">%</span>
+        </button>
+
+        <button class="number" onclick="appendNumber('1')">1</button>
+        <button class="number" onclick="appendNumber('2')">2</button>
+        <button class="number" onclick="appendNumber('3')">3</button>
+        <button class="operator" onclick="addOperator('+')">+</button>
+
+        <button class="number" onclick="appendNumber('0')">0</button>
+        <button class="number" onclick="appendNumber('000')">000</button>
+        <button class="number" onclick="appendNumber('.')">.</button>
+        <button class="equals" onclick="calculate()">=</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let expression = '';
+    let result = '0';
+    let lastCalculation = '';
+    let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+    let longPressTimer;
+    let justCalculated = false;
+    let showEquals = false;
+
+    const resultDisplay = document.getElementById('result');
+    const expressionDisplay = document.getElementById('expression');
+    const historyList = document.getElementById('historyList');
+    const historySection = document.getElementById('historySection');
+    
+    const divideBtn = document.getElementById('divideBtn');
+    const multiplyBtn = document.getElementById('multiplyBtn');
+    const minusBtn = document.getElementById('minusBtn');
+
+    // Thiết lập nhấn giữ cho các nút
+    setupLongPress(divideBtn, squareRoot);
+    setupLongPress(multiplyBtn, () => addOperator('^'));
+    setupLongPress(minusBtn, percentage);
+
+    function setupLongPress(button, action) {
+      let pressTimer;
+      let isLongPress = false;
+      
+      const startPress = (e) => {
+        isLongPress = false;
+        pressTimer = setTimeout(() => {
+          isLongPress = true;
+          action();
+          navigator.vibrate && navigator.vibrate(50);
+        }, 500);
+      };
+      
+      const cancelPress = () => {
+        clearTimeout(pressTimer);
+      };
+      
+      const handleClick = (e) => {
+        if (!isLongPress) {
+          return true;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      };
+      
+      button.addEventListener('touchstart', startPress);
+      button.addEventListener('mousedown', startPress);
+      button.addEventListener('touchend', cancelPress);
+      button.addEventListener('mouseup', cancelPress);
+      button.addEventListener('touchmove', cancelPress);
+      button.addEventListener('click', handleClick);
+    }
+
+    function updateDisplay() {
+      if (showEquals) {
+        resultDisplay.textContent = '= ' + result;
+      } else {
+        resultDisplay.textContent = result;
+      }
+      expressionDisplay.textContent = expression || lastCalculation;
+    }
+
+    function updateHistoryDisplay() {
+      if (history.length === 0) {
+        historyList.innerHTML = '<div class="no-history">Chưa có lịch sử</div>';
+        return;
+      }
+
+      historyList.innerHTML = history.map((item, index) => `
+        <div class="history-item-wrapper" id="history-${index}">
+          <div class="history-item" ontouchstart="handleSwipeStart(event, ${index})" ontouchmove="handleSwipeMove(event, ${index})" ontouchend="handleSwipeEnd(event, ${index})" onclick="useHistoryResult(${index})">
+            <div class="history-expression">${item.expression}</div>
+            <div class="history-result">= ${item.result}</div>
+          </div>
+          <div class="history-actions">
+            <button class="edit-btn" onclick="editHistory(${index})">✏️</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Cuộn xuống dưới cùng để thấy phép tính mới nhất
+      setTimeout(() => {
+        historySection.scrollTop = historySection.scrollHeight;
+      }, 100);
+    }
+
+    let swipeStartX = 0;
+    let currentSwipeIndex = null;
+
+    function handleSwipeStart(e, index) {
+      swipeStartX = e.touches[0].clientX;
+      currentSwipeIndex = index;
+    }
+
+    function handleSwipeMove(e, index) {
+      if (currentSwipeIndex !== index) return;
+      
+      const currentX = e.touches[0].clientX;
+      const diff = swipeStartX - currentX;
+      
+      if (diff > 0 && diff < 80) {
+        const item = document.querySelector(`#history-${index} .history-item`);
+        item.style.transform = `translateX(-${diff}px)`;
+      }
+    }
+
+    function handleSwipeEnd(e, index) {
+      if (currentSwipeIndex !== index) return;
+      
+      const item = document.querySelector(`#history-${index} .history-item`);
+      const diff = swipeStartX - e.changedTouches[0].clientX;
+      
+      if (diff > 40) {
+        item.classList.add('swiped');
+      } else {
+        item.style.transform = 'translateX(0)';
+      }
+      
+      currentSwipeIndex = null;
+    }
+
+    function editHistory(index) {
+      const item = history[index];
+      // Tách phép tính thành expression và result
+      const parts = item.expression.split(/([+\-×÷^])/);
+      
+      if (parts.length >= 3) {
+        expression = parts.slice(0, -1).join(' ') + ' ' + parts[parts.length - 2] + ' ';
+        result = parts[parts.length - 1] || '0';
+      } else {
+        result = item.result;
+        expression = '';
+      }
+      
+      justCalculated = false;
+      showEquals = false;
+      updateDisplay();
+      
+      // Đóng swipe
+      const itemElement = document.querySelector(`#history-${index} .history-item`);
+      itemElement.classList.remove('swiped');
+    }
+
+    function addToHistory(expr, res) {
+      history.push({ expression: expr, result: res });
+      if (history.length > 50) history.shift();
+      localStorage.setItem('calcHistory', JSON.stringify(history));
+      updateHistoryDisplay();
+    }
+
+    function useHistoryResult(index) {
+      // Kiểm tra nếu đang swipe thì không load kết quả
+      const item = document.querySelector(`#history-${index} .history-item`);
+      if (item.classList.contains('swiped')) {
+        item.classList.remove('swiped');
+        return;
+      }
+      
+      const historyItem = history[index];
+      result = historyItem.result;
+      expression = '';
+      lastCalculation = '';
+      justCalculated = false;
+      showEquals = false;
+      updateDisplay();
+    }
+
+    function clearHistory() {
+      if (confirm('Xóa toàn bộ lịch sử?')) {
+        history = [];
+        localStorage.removeItem('calcHistory');
+        updateHistoryDisplay();
+      }
+    }
+
+    function appendNumber(num) {
+      // Nếu vừa tính xong, bắt đầu phép tính mới
+      if (justCalculated) {
+        result = '0';
+        expression = '';
+        lastCalculation = '';
+        justCalculated = false;
+        showEquals = false;
+      }
+      
+      if (result === '0' && num !== '.') {
+        result = num;
+      } else if (result === 'Lỗi') {
+        result = num;
+        expression = '';
+      } else {
+        if (num === '.' && result.includes('.')) return;
+        result += num;
+      }
+      updateDisplay();
+    }
+
+    function deleteLastChar() {
+      if (result === 'Lỗi' || result === '0') {
+        return;
+      }
+      
+      if (result.length === 1) {
+        result = '0';
+      } else {
+        result = result.slice(0, -1);
+      }
+      updateDisplay();
+    }
+
+    function addOperator(op) {
+      // Nếu vừa tính xong, dùng kết quả để tiếp tục
+      if (justCalculated) {
+        justCalculated = false;
+        showEquals = false;
+      }
+      
+      if (result === 'Lỗi') {
+        clearAll();
+        return;
+      }
+
+      if (expression && !isNaN(result[result.length - 1])) {
+        expression += result + ' ' + op + ' ';
+        result = '0';
+      } else if (expression) {
+        expression = expression.slice(0, -3) + ' ' + op + ' ';
+      } else {
+        expression = result + ' ' + op + ' ';
+        result = '0';
+      }
+      updateDisplay();
+    }
+
+    function addParenthesis() {
+      if (result === 'Lỗi') {
+        clearAll();
+        return;
+      }
+
+      const openCount = (expression.match(/\(/g) || []).length;
+      const closeCount = (expression.match(/\)/g) || []).length;
+
+      if (openCount === closeCount) {
+        if (result !== '0' && expression) {
+          expression += result + ' × (';
+        } else {
+          expression += '(';
+        }
+        result = '0';
+      } else {
+        expression += result + ')';
+        result = '0';
+      }
+      updateDisplay();
+    }
+
+    function squareRoot() {
+      if (result === 'Lỗi') {
+        clearAll();
+        return;
+      }
+
+      const num = parseFloat(result);
+      if (num < 0) {
+        result = 'Lỗi';
+        setTimeout(clearAll, 1500);
+      } else {
+        const originalNum = result;
+        result = Math.sqrt(num).toString();
+        if (result.length > 12) {
+          result = parseFloat(result).toFixed(8);
+        }
+        addToHistory(`√${originalNum}`, result);
+        justCalculated = true;
+        showEquals = true;
+      }
+      updateDisplay();
+    }
+
+    function percentage() {
+      if (result === 'Lỗi') {
+        clearAll();
+        return;
+      }
+
+      const originalNum = result;
+      result = (parseFloat(result) / 100).toString();
+      addToHistory(`${originalNum}%`, result);
+      justCalculated = true;
+      showEquals = true;
+      updateDisplay();
+    }
+
+    function calculate() {
+      if (result === 'Lỗi') {
+        clearAll();
+        return;
+      }
+
+      try {
+        let fullExpression = expression + result;
+        lastCalculation = fullExpression;
+
+        fullExpression = fullExpression.replace(/×/g, '*');
+        fullExpression = fullExpression.replace(/÷/g, '/');
+        fullExpression = fullExpression.replace(/\^/g, '**');
+
+        const calculatedResult = eval(fullExpression);
+        
+        if (!isFinite(calculatedResult)) {
+          result = 'Lỗi';
+          setTimeout(clearAll, 1500);
+          return;
+        }
+
+        result = calculatedResult.toString();
+        
+        if (result.length > 12) {
+          result = parseFloat(result).toFixed(8).replace(/\.?0+$/, '');
+        }
+
+        addToHistory(lastCalculation, result);
+
+        expression = '';
+        justCalculated = true;
+        showEquals = true;
+        updateDisplay();
+      } catch (error) {
+        result = 'Lỗi';
+        expression = '';
+        updateDisplay();
+        setTimeout(clearAll, 1500);
+      }
+    }
+
+    function clearAll() {
+      expression = '';
+      result = '0';
+      lastCalculation = '';
+      justCalculated = false;
+      showEquals = false;
+      updateDisplay();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+      if (e.key === '.') appendNumber('.');
+      if (e.key === '+') addOperator('+');
+      if (e.key === '-') addOperator('-');
+      if (e.key === '*') addOperator('×');
+      if (e.key === '/') {
+        e.preventDefault();
+        addOperator('÷');
+      }
+      if (e.key === 'Backspace') deleteLastChar();
+      if (e.key === '(') addParenthesis();
+      if (e.key === ')') addParenthesis();
+      if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();
+        calculate();
+      }
+      if (e.key === 'Escape' || e.key === 'c') clearAll();
+    });
+
+    updateDisplay();
+    updateHistoryDisplay();
+  </script>
+</body>
+</html>
