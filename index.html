@@ -68,14 +68,9 @@
       font-weight: 600;
     }
 
-    .history-actions-header {
-      display: flex;
-      gap: 6px;
-    }
-
-    .settings-btn, .clear-history {
-      background: rgba(0, 0, 0, 0.08);
-      color: #666;
+    .clear-history {
+      background: rgba(255, 107, 107, 0.15);
+      color: #ff6b6b;
       border: none;
       padding: 3px 8px;
       border-radius: 5px;
@@ -84,123 +79,9 @@
       font-weight: 600;
     }
 
-    .clear-history {
-      background: rgba(255, 107, 107, 0.15);
-      color: #ff6b6b;
-    }
-
-    .settings-btn:active, .clear-history:active {
+    .clear-history:active {
       transform: scale(0.95);
-    }
-
-    .settings-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .settings-modal.show {
-      display: flex;
-    }
-
-    .settings-content {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      width: 90%;
-      max-width: 350px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-
-    .settings-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .settings-header h3 {
-      font-size: 18px;
-      color: #333;
-    }
-
-    .close-settings {
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: #666;
-      cursor: pointer;
-      padding: 0;
-      width: 30px;
-      height: 30px;
-    }
-
-    .settings-option {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #f0f0f0;
-    }
-
-    .settings-option:last-child {
-      border-bottom: none;
-    }
-
-    .settings-label {
-      font-size: 15px;
-      color: #333;
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 50px;
-      height: 28px;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider-toggle {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.3s;
-      border-radius: 28px;
-    }
-
-    .slider-toggle:before {
-      position: absolute;
-      content: "";
-      height: 22px;
-      width: 22px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider-toggle {
-      background-color: #34c759;
-    }
-
-    input:checked + .slider-toggle:before {
-      transform: translateX(22px);
+      background: rgba(255, 107, 107, 0.25);
     }
 
     .history-list {
@@ -459,10 +340,7 @@
       <div class="history-section" id="historySection">
         <div class="history-header">
           <div class="history-title">📜 Lịch sử</div>
-          <div class="history-actions-header">
-            <button class="settings-btn" onclick="openSettings()">⚙️</button>
-            <button class="clear-history" onclick="clearHistory()">Xóa</button>
-          </div>
+          <button class="clear-history" onclick="clearHistory()">Xóa</button>
         </div>
         <div class="history-list" id="historyList">
           <div class="no-history">Chưa có lịch sử</div>
@@ -515,23 +393,6 @@
     </div>
   </div>
 
-  <!-- Modal cài đặt -->
-  <div class="settings-modal" id="settingsModal" onclick="closeSettingsIfClickOutside(event)">
-    <div class="settings-content" onclick="event.stopPropagation()">
-      <div class="settings-header">
-        <h3>⚙️ Cài đặt</h3>
-        <button class="close-settings" onclick="closeSettings()">×</button>
-      </div>
-      <div class="settings-option">
-        <div class="settings-label">🔊 Âm thanh phím</div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="soundToggle" onchange="toggleSound()" checked>
-          <span class="slider-toggle"></span>
-        </label>
-      </div>
-    </div>
-  </div>
-
   <script>
     let expression = '';
     let result = '0';
@@ -540,20 +401,15 @@
     let longPressTimer;
     let justCalculated = false;
     let showEquals = false;
-    let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
 
     const resultDisplay = document.getElementById('result');
     const expressionDisplay = document.getElementById('expression');
     const historyList = document.getElementById('historyList');
     const historySection = document.getElementById('historySection');
-    const soundToggle = document.getElementById('soundToggle');
     
     const divideBtn = document.getElementById('divideBtn');
     const multiplyBtn = document.getElementById('multiplyBtn');
     const minusBtn = document.getElementById('minusBtn');
-
-    // Khôi phục trạng thái âm thanh
-    soundToggle.checked = soundEnabled;
 
     let audioContext;
     function initAudio() {
@@ -563,8 +419,6 @@
     }
 
     function playClickSound() {
-      if (!soundEnabled) return;
-      
       initAudio();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -580,38 +434,6 @@
       
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.05);
-    }
-
-    function toggleSound() {
-      soundEnabled = soundToggle.checked;
-      localStorage.setItem('soundEnabled', soundEnabled);
-      if (soundEnabled) {
-        playClickSound();
-      }
-    }
-
-    function openSettings() {
-      document.getElementById('settingsModal').classList.add('show');
-    }
-
-    function closeSettings() {
-      document.getElementById('settingsModal').classList.remove('show');
-    }
-
-    function closeSettingsIfClickOutside(event) {
-      if (event.target.id === 'settingsModal') {
-        closeSettings();
-      }
-    }
-
-    function formatNumber(num) {
-      const parts = num.toString().split('.');
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      return parts.join('.');
-    }
-
-    function removeFormatting(num) {
-      return num.replace(/,/g, '');
     }
 
     function flashDisplay() {
@@ -660,8 +482,11 @@
     }
 
     function updateDisplay() {
-      const displayValue = showEquals ? '= ' + result : result;
-      resultDisplay.textContent = formatNumber(displayValue);
+      if (showEquals) {
+        resultDisplay.textContent = '= ' + result;
+      } else {
+        resultDisplay.textContent = result;
+      }
       expressionDisplay.textContent = expression || lastCalculation;
     }
 
@@ -675,7 +500,7 @@
         <div class="history-item-wrapper" id="history-${index}">
           <div class="history-item" ontouchstart="handleSwipeStart(event, ${index})" ontouchmove="handleSwipeMove(event, ${index})" ontouchend="handleSwipeEnd(event, ${index})" onclick="useHistoryResult(${index})">
             <div class="history-expression">${item.expression}</div>
-            <div class="history-result">= ${formatNumber(item.result)}</div>
+            <div class="history-result">= ${item.result}</div>
           </div>
           <div class="history-actions">
             <button class="edit-btn" onclick="editHistory(${index})">✏️</button>
@@ -787,9 +612,6 @@
         showEquals = false;
       }
       
-      // Loại bỏ dấu phẩy trước khi xử lý
-      result = removeFormatting(result);
-      
       if (result === '0' && num !== '.') {
         result = num;
       } else if (result === 'Lỗi') {
@@ -808,8 +630,6 @@
       if (result === 'Lỗi' || result === '0') {
         return;
       }
-      
-      result = removeFormatting(result);
       
       if (result.length === 1) {
         result = '0';
@@ -832,9 +652,7 @@
         return;
       }
 
-      result = removeFormatting(result);
-
-      if (expression && result !== '0') {
+      if (expression && !isNaN(result[result.length - 1])) {
         expression += result + ' ' + op + ' ';
         result = '0';
       } else if (expression) {
@@ -854,15 +672,11 @@
         return;
       }
 
-      result = removeFormatting(result);
-
       const openCount = (expression.match(/\(/g) || []).length;
       const closeCount = (expression.match(/\)/g) || []).length;
 
       if (openCount === closeCount) {
-        if (result !== '0' && expression && !expression.endsWith(' ')) {
-          expression += ' × (';
-        } else if (result !== '0' && expression) {
+        if (result !== '0' && expression) {
           expression += result + ' × (';
         } else {
           expression += '(';
@@ -887,9 +701,7 @@
         return;
       }
 
-      result = removeFormatting(result);
       const num = parseFloat(result);
-      
       if (num < 0) {
         result = 'Lỗi';
         setTimeout(clearAll, 1500);
@@ -914,7 +726,6 @@
         return;
       }
 
-      result = removeFormatting(result);
       const originalNum = result;
       result = (parseFloat(result) / 100).toString();
       addToHistory(`${originalNum}%`, result);
@@ -932,7 +743,6 @@
       }
 
       try {
-        result = removeFormatting(result);
         let fullExpression = expression + result;
         lastCalculation = fullExpression;
 
@@ -950,7 +760,7 @@
 
         result = calculatedResult.toString();
         
-        if (result.length > 15) {
+        if (result.length > 12) {
           result = parseFloat(result).toFixed(8).replace(/\.?0+$/, '');
         }
 
@@ -995,4 +805,11 @@
         e.preventDefault();
         calculate();
       }
-      if (e.key === 'Escape' || e
+      if (e.key === 'Escape' || e.key === 'c') clearAll();
+    });
+
+    updateDisplay();
+    updateHistoryDisplay();
+  </script>
+</body>
+</html>
