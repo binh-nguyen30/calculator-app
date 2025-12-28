@@ -37,13 +37,13 @@
       padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
     }
 
-    /* Phần trên: Lịch sử + Display */
     .top-section {
       flex: 1;
       display: flex;
       flex-direction: column;
       padding: 10px 15px 5px 15px;
       overflow: hidden;
+      min-height: 0;
     }
 
     .history-section {
@@ -68,9 +68,14 @@
       font-weight: 600;
     }
 
-    .clear-history {
-      background: rgba(255, 107, 107, 0.15);
-      color: #ff6b6b;
+    .history-actions-header {
+      display: flex;
+      gap: 6px;
+    }
+
+    .settings-btn, .clear-history {
+      background: rgba(0, 0, 0, 0.08);
+      color: #666;
       border: none;
       padding: 3px 8px;
       border-radius: 5px;
@@ -79,9 +84,118 @@
       font-weight: 600;
     }
 
-    .clear-history:active {
+    .clear-history {
+      background: rgba(255, 107, 107, 0.15);
+      color: #ff6b6b;
+    }
+
+    .settings-btn:active, .clear-history:active {
       transform: scale(0.95);
-      background: rgba(255, 107, 107, 0.25);
+    }
+
+    .settings-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settings-modal.show {
+      display: flex;
+    }
+
+    .settings-content {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      width: 90%;
+      max-width: 350px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .settings-header h3 {
+      font-size: 18px;
+      color: #333;
+    }
+
+    .close-settings {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #666;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+    }
+
+    .settings-option {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+    }
+
+    .settings-label {
+      font-size: 15px;
+      color: #333;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 28px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider-toggle {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 28px;
+    }
+
+    .slider-toggle:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider-toggle {
+      background-color: #34c759;
+    }
+
+    input:checked + .slider-toggle:before {
+      transform: translateX(22px);
     }
 
     .history-list {
@@ -199,7 +313,6 @@
       100% { transform: scale(1); }
     }
 
-    /* Phần dưới: Bàn phím */
     .keyboard-section {
       padding: 5px 15px 15px 15px;
       flex-shrink: 0;
@@ -292,7 +405,6 @@
       color: #ff6b6b;
     }
 
-    /* Scrollbar styling */
     .history-section::-webkit-scrollbar {
       width: 4px;
     }
@@ -335,12 +447,14 @@
 </head>
 <body>
   <div class="calculator">
-    <!-- Phần trên: Lịch sử + Display -->
     <div class="top-section">
       <div class="history-section" id="historySection">
         <div class="history-header">
           <div class="history-title">📜 Lịch sử</div>
-          <button class="clear-history" onclick="clearHistory()">Xóa</button>
+          <div class="history-actions-header">
+            <button class="settings-btn" onclick="openSettings()">⚙️</button>
+            <button class="clear-history" onclick="clearHistory()">Xóa</button>
+          </div>
         </div>
         <div class="history-list" id="historyList">
           <div class="no-history">Chưa có lịch sử</div>
@@ -353,42 +467,59 @@
       </div>
     </div>
 
-    <!-- Phần dưới: Bàn phím -->
     <div class="keyboard-section">
       <div class="buttons">
         <button class="function" onclick="clearAll()">AC</button>
-        <button class="function" onclick="addParenthesis()">()</button>
         <button class="delete" onclick="deleteLastChar()">⌫</button>
+        <button class="function" onclick="addParenthesis('(')">(</button>
+        <button class="function" onclick="addParenthesis(')')">)</button>
+
+        <button class="number" onclick="appendNumber('7')">7</button>
+        <button class="number" onclick="appendNumber('8')">8</button>
+        <button class="number" onclick="appendNumber('9')">9</button>
         <button class="operator" id="divideBtn" onclick="addOperator('÷')">
           ÷
           <span class="operator-badge">√</span>
         </button>
 
-        <button class="number" onclick="appendNumber('7')">7</button>
-        <button class="number" onclick="appendNumber('8')">8</button>
-        <button class="number" onclick="appendNumber('9')">9</button>
+        <button class="number" onclick="appendNumber('4')">4</button>
+        <button class="number" onclick="appendNumber('5')">5</button>
+        <button class="number" onclick="appendNumber('6')">6</button>
         <button class="operator" id="multiplyBtn" onclick="addOperator('×')">
           ×
           <span class="operator-badge">^</span>
         </button>
 
-        <button class="number" onclick="appendNumber('4')">4</button>
-        <button class="number" onclick="appendNumber('5')">5</button>
-        <button class="number" onclick="appendNumber('6')">6</button>
+        <button class="number" onclick="appendNumber('1')">1</button>
+        <button class="number" onclick="appendNumber('2')">2</button>
+        <button class="number" onclick="appendNumber('3')">3</button>
         <button class="operator" id="minusBtn" onclick="addOperator('-')">
           -
           <span class="operator-badge">%</span>
         </button>
 
-        <button class="number" onclick="appendNumber('1')">1</button>
-        <button class="number" onclick="appendNumber('2')">2</button>
-        <button class="number" onclick="appendNumber('3')">3</button>
-        <button class="operator" onclick="addOperator('+')">+</button>
-
         <button class="number" onclick="appendNumber('0')">0</button>
         <button class="number" onclick="appendNumber('000')">000</button>
         <button class="number" onclick="appendNumber('.')">.</button>
-        <button class="equals" onclick="calculate()">=</button>
+        <button class="operator" onclick="addOperator('+')">+</button>
+
+        <button class="equals" onclick="calculate()" style="grid-column: span 4;">=</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-modal" id="settingsModal" onclick="closeSettingsIfClickOutside(event)">
+    <div class="settings-content" onclick="event.stopPropagation()">
+      <div class="settings-header">
+        <h3>⚙️ Cài đặt</h3>
+        <button class="close-settings" onclick="closeSettings()">×</button>
+      </div>
+      <div class="settings-option">
+        <div class="settings-label">🔊 Âm thanh phím</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="soundToggle" onchange="toggleSound()" checked>
+          <span class="slider-toggle"></span>
+        </label>
       </div>
     </div>
   </div>
@@ -398,18 +529,21 @@
     let result = '0';
     let lastCalculation = '';
     let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
-    let longPressTimer;
     let justCalculated = false;
     let showEquals = false;
+    let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
 
     const resultDisplay = document.getElementById('result');
     const expressionDisplay = document.getElementById('expression');
     const historyList = document.getElementById('historyList');
     const historySection = document.getElementById('historySection');
+    const soundToggle = document.getElementById('soundToggle');
     
     const divideBtn = document.getElementById('divideBtn');
     const multiplyBtn = document.getElementById('multiplyBtn');
     const minusBtn = document.getElementById('minusBtn');
+
+    soundToggle.checked = soundEnabled;
 
     let audioContext;
     function initAudio() {
@@ -419,6 +553,8 @@
     }
 
     function playClickSound() {
+      if (!soundEnabled) return;
+      
       initAudio();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -436,6 +572,43 @@
       oscillator.stop(audioContext.currentTime + 0.05);
     }
 
+    function toggleSound() {
+      soundEnabled = soundToggle.checked;
+      localStorage.setItem('soundEnabled', soundEnabled);
+      if (soundEnabled) {
+        playClickSound();
+      }
+    }
+
+    function openSettings() {
+      document.getElementById('settingsModal').classList.add('show');
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').classList.remove('show');
+    }
+
+    function closeSettingsIfClickOutside(event) {
+      if (event.target.id === 'settingsModal') {
+        closeSettings();
+      }
+    }
+
+    function formatNumber(num) {
+      const str = num.toString();
+      if (str.includes('=')) {
+        const parts = str.split('=');
+        return parts[0] + '=' + parts[1].trim().replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+      }
+      const parts = str.split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+      return parts.join('.');
+    }
+
+    function removeFormatting(num) {
+      return num.replace(/'/g, '');
+    }
+
     function flashDisplay() {
       resultDisplay.classList.add('flash');
       setTimeout(() => {
@@ -451,7 +624,7 @@
       let pressTimer;
       let isLongPress = false;
       
-      const startPress = (e) => {
+      const startPress = () => {
         isLongPress = false;
         pressTimer = setTimeout(() => {
           isLongPress = true;
@@ -465,12 +638,12 @@
       };
       
       const handleClick = (e) => {
-        if (!isLongPress) {
-          return true;
+        if (isLongPress) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
         }
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
+        return true;
       };
       
       button.addEventListener('touchstart', startPress);
@@ -482,11 +655,8 @@
     }
 
     function updateDisplay() {
-      if (showEquals) {
-        resultDisplay.textContent = '= ' + result;
-      } else {
-        resultDisplay.textContent = result;
-      }
+      const displayValue = showEquals ? '= ' + result : result;
+      resultDisplay.textContent = formatNumber(displayValue);
       expressionDisplay.textContent = expression || lastCalculation;
     }
 
@@ -500,7 +670,7 @@
         <div class="history-item-wrapper" id="history-${index}">
           <div class="history-item" ontouchstart="handleSwipeStart(event, ${index})" ontouchmove="handleSwipeMove(event, ${index})" ontouchend="handleSwipeEnd(event, ${index})" onclick="useHistoryResult(${index})">
             <div class="history-expression">${item.expression}</div>
-            <div class="history-result">= ${item.result}</div>
+            <div class="history-result">= ${formatNumber(item.result)}</div>
           </div>
           <div class="history-actions">
             <button class="edit-btn" onclick="editHistory(${index})">✏️</button>
@@ -612,6 +782,8 @@
         showEquals = false;
       }
       
+      result = removeFormatting(result);
+      
       if (result === '0' && num !== '.') {
         result = num;
       } else if (result === 'Lỗi') {
@@ -630,6 +802,8 @@
       if (result === 'Lỗi' || result === '0') {
         return;
       }
+      
+      result = removeFormatting(result);
       
       if (result.length === 1) {
         result = '0';
@@ -652,7 +826,9 @@
         return;
       }
 
-      if (expression && !isNaN(result[result.length - 1])) {
+      result = removeFormatting(result);
+
+      if (expression && result !== '0') {
         expression += result + ' ' + op + ' ';
         result = '0';
       } else if (expression) {
@@ -664,7 +840,7 @@
       updateDisplay();
     }
 
-    function addParenthesis() {
+    function addParenthesis(type) {
       playClickSound();
       
       if (result === 'Lỗi') {
@@ -672,11 +848,12 @@
         return;
       }
 
-      const openCount = (expression.match(/\(/g) || []).length;
-      const closeCount = (expression.match(/\)/g) || []).length;
+      result = removeFormatting(result);
 
-      if (openCount === closeCount) {
-        if (result !== '0' && expression) {
+      if (type === '(') {
+        if (result !== '0' && expression && !expression.endsWith(' ')) {
+          expression += ' × (';
+        } else if (result !== '0') {
           expression += result + ' × (';
         } else {
           expression += '(';
@@ -701,7 +878,9 @@
         return;
       }
 
+      result = removeFormatting(result);
       const num = parseFloat(result);
+      
       if (num < 0) {
         result = 'Lỗi';
         setTimeout(clearAll, 1500);
@@ -726,6 +905,7 @@
         return;
       }
 
+      result = removeFormatting(result);
       const originalNum = result;
       result = (parseFloat(result) / 100).toString();
       addToHistory(`${originalNum}%`, result);
@@ -743,6 +923,7 @@
       }
 
       try {
+        result = removeFormatting(result);
         let fullExpression = expression + result;
         lastCalculation = fullExpression;
 
@@ -760,7 +941,7 @@
 
         result = calculatedResult.toString();
         
-        if (result.length > 12) {
+        if (result.length > 15) {
           result = parseFloat(result).toFixed(8).replace(/\.?0+$/, '');
         }
 
@@ -799,8 +980,8 @@
         addOperator('÷');
       }
       if (e.key === 'Backspace') deleteLastChar();
-      if (e.key === '(') addParenthesis();
-      if (e.key === ')') addParenthesis();
+      if (e.key === '(') addParenthesis('(');
+      if (e.key === ')') addParenthesis(')');
       if (e.key === 'Enter' || e.key === '=') {
         e.preventDefault();
         calculate();
