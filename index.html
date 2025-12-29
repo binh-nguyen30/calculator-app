@@ -567,15 +567,15 @@
       const str = num.toString();
       if (str.includes('=')) {
         const parts = str.split('=');
-        return parts[0] + '=' + parts[1].trim().replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+        return parts[0] + '=' + parts[1].trim().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
       }
       const parts = str.split('.');
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
       return parts.join('.');
     }
 
     function removeFormatting(num) {
-      return num.replace(/'/g, '');
+      return num.replace(/ /g, '');
     }
 
     function flashDisplay() {
