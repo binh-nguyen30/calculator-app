@@ -39,10 +39,11 @@
 
     /* Phần trên: Lịch sử + Display - 2/5 màn hình */
     .top-section {
-      height: 40%;
+      flex: 0 0 40%;
       display: flex;
       flex-direction: column;
       padding: 10px 20px;
+      overflow: hidden;
     }
 
     .history-section {
@@ -186,8 +187,9 @@
 
     /* Phần dưới: Bàn phím - 3/5 màn hình */
     .keyboard-section {
-      height: 60%;
+      flex: 0 0 60%;
       padding: 10px 20px 20px 20px;
+      background: #ffffff;
     }
 
     .buttons {
@@ -240,8 +242,8 @@
     }
 
     .equals {
-      background: #e0e0e0;
-      color: #333;
+      background: #34c759;
+      color: white;
     }
 
     .delete {
@@ -252,6 +254,108 @@
 
     .error {
       color: #ff6b6b;
+    }
+
+    /* Settings Modal */
+    .settings-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settings-modal.active {
+      display: flex;
+    }
+
+    .settings-content {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .settings-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .close-settings {
+      background: #e0e0e0;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+    }
+
+    .settings-option {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .settings-option:last-child {
+      border-bottom: none;
+    }
+
+    .settings-label {
+      font-size: 16px;
+      color: #333;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 28px;
+      background: #ccc;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .toggle-switch.active {
+      background: #34c759;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: white;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(22px);
     }
 
     @media (max-width: 400px) {
@@ -329,6 +433,20 @@
     </div>
   </div>
 
+  <!-- Settings Modal -->
+  <div class="settings-modal" id="settingsModal">
+    <div class="settings-content">
+      <div class="settings-header">
+        <div class="settings-title">Cài đặt</div>
+        <button class="close-settings" onclick="closeSettings()">×</button>
+      </div>
+      <div class="settings-option">
+        <div class="settings-label">Âm thanh khi bấm</div>
+        <div class="toggle-switch" id="soundToggle" onclick="toggleSound()"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     let expression = '';
     let result = '0';
@@ -337,6 +455,38 @@
     let longPressTimer;
     let justCalculated = false;
     let showEquals = false;
+    let soundEnabled = localStorage.getItem('soundEnabled') === 'true';
+    
+    // Audio context cho âm thanh
+    let audioContext = null;
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+    
+    function playSound(frequency = 800, duration = 100) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration / 1000);
+      } catch (e) {
+        // Ignore audio errors
+      }
+    }
 
     const resultDisplay = document.getElementById('result');
     const expressionDisplay = document.getElementById('expression');
@@ -346,11 +496,19 @@
     const divideBtn = document.getElementById('divideBtn');
     const multiplyBtn = document.getElementById('multiplyBtn');
     const minusBtn = document.getElementById('minusBtn');
+    const acBtn = document.querySelector('.function[onclick="clearAll()"]');
 
     // Thiết lập nhấn giữ cho các nút
-    setupLongPress(divideBtn, squareRoot);
+    setupLongPress(divideBtn, () => addSquareRootToExpression());
     setupLongPress(multiplyBtn, () => addOperator('^'));
-    setupLongPress(minusBtn, percentage);
+    setupLongPress(minusBtn, () => addPercentageToExpression());
+    setupLongPress(acBtn, openSettings);
+    
+    // Cập nhật trạng thái toggle âm thanh
+    const soundToggle = document.getElementById('soundToggle');
+    if (soundEnabled) {
+      soundToggle.classList.add('active');
+    }
 
     function setupLongPress(button, action) {
       let pressTimer;
@@ -509,6 +667,7 @@
     }
 
     function appendNumber(num) {
+      playSound(600, 50);
       // Nếu vừa tính xong, bắt đầu phép tính mới
       if (justCalculated) {
         result = '0';
@@ -531,6 +690,7 @@
     }
 
     function deleteLastChar() {
+      playSound(400, 50);
       if (result === 'Lỗi' || result === '0') {
         return;
       }
@@ -544,6 +704,7 @@
     }
 
     function addOperator(op) {
+      playSound(700, 50);
       // Nếu vừa tính xong, dùng kết quả để tiếp tục
       if (justCalculated) {
         justCalculated = false;
@@ -568,6 +729,7 @@
     }
 
     function addParenthesis() {
+      playSound(500, 50);
       if (result === 'Lỗi') {
         clearAll();
         return;
@@ -589,45 +751,68 @@
       }
       updateDisplay();
     }
-
-    function squareRoot() {
+    
+    function addSquareRootToExpression() {
+      playSound(800, 50);
       if (result === 'Lỗi') {
         clearAll();
         return;
       }
-
-      const num = parseFloat(result);
-      if (num < 0) {
-        result = 'Lỗi';
-        setTimeout(clearAll, 1500);
-      } else {
-        const originalNum = result;
-        result = Math.sqrt(num).toString();
-        if (result.length > 12) {
-          result = parseFloat(result).toFixed(8);
+      
+      if (justCalculated) {
+        justCalculated = false;
+        showEquals = false;
+      }
+      
+      if (result !== '0') {
+        if (expression) {
+          expression += result + ' + √(';
+        } else {
+          expression = result + ' + √(';
         }
-        addToHistory(`√${originalNum}`, result);
-        justCalculated = true;
-        showEquals = true;
+      } else {
+        if (expression) {
+          expression += '√(';
+        } else {
+          expression = '√(';
+        }
       }
+      result = '0';
       updateDisplay();
     }
-
-    function percentage() {
+    
+    function addPercentageToExpression() {
+      playSound(800, 50);
       if (result === 'Lỗi') {
         clearAll();
         return;
       }
-
-      const originalNum = result;
-      result = (parseFloat(result) / 100).toString();
-      addToHistory(`${originalNum}%`, result);
-      justCalculated = true;
-      showEquals = true;
+      
+      if (justCalculated) {
+        justCalculated = false;
+        showEquals = false;
+      }
+      
+      if (result !== '0') {
+        if (expression) {
+          expression += result + ' + (' + result + '/100)';
+        } else {
+          expression = '(' + result + '/100)';
+        }
+      } else {
+        if (expression) {
+          expression += '(0/100)';
+        } else {
+          expression = '(0/100)';
+        }
+      }
+      result = '0';
       updateDisplay();
     }
+
 
     function calculate() {
+      playSound(900, 100);
       if (result === 'Lỗi') {
         clearAll();
         return;
@@ -637,6 +822,8 @@
         let fullExpression = expression + result;
         lastCalculation = fullExpression;
 
+        // Xử lý √( trong expression
+        fullExpression = fullExpression.replace(/√\(/g, 'Math.sqrt(');
         fullExpression = fullExpression.replace(/×/g, '*');
         fullExpression = fullExpression.replace(/÷/g, '/');
         fullExpression = fullExpression.replace(/\^/g, '**');
@@ -670,6 +857,7 @@
     }
 
     function clearAll() {
+      playSound(300, 50);
       expression = '';
       result = '0';
       lastCalculation = '';
@@ -677,6 +865,35 @@
       showEquals = false;
       updateDisplay();
     }
+    
+    function openSettings() {
+      playSound(500, 50);
+      document.getElementById('settingsModal').classList.add('active');
+    }
+    
+    function closeSettings() {
+      playSound(400, 50);
+      document.getElementById('settingsModal').classList.remove('active');
+    }
+    
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('soundEnabled', soundEnabled);
+      const soundToggle = document.getElementById('soundToggle');
+      if (soundEnabled) {
+        soundToggle.classList.add('active');
+        playSound(600, 50);
+      } else {
+        soundToggle.classList.remove('active');
+      }
+    }
+    
+    // Đóng settings khi click bên ngoài
+    document.getElementById('settingsModal').addEventListener('click', (e) => {
+      if (e.target.id === 'settingsModal') {
+        closeSettings();
+      }
+    });
 
     document.addEventListener('keydown', (e) => {
       if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
