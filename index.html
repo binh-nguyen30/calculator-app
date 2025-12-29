@@ -34,23 +34,13 @@
       max-width: 500px;
       width: 100%;
       margin: 0 auto;
-      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
-    }
-
-    .top-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 10px 15px 5px 15px;
-      overflow: hidden;
-      min-height: 0;
     }
 
     .history-section {
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      margin-bottom: 8px;
+      padding: 10px 15px;
       min-height: 0;
     }
 
@@ -58,8 +48,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       padding: 0 2px;
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 10;
+      padding-top: env(safe-area-inset-top);
     }
 
     .history-title {
@@ -68,14 +63,9 @@
       font-weight: 600;
     }
 
-    .history-actions-header {
-      display: flex;
-      gap: 6px;
-    }
-
-    .settings-btn, .clear-history {
-      background: rgba(0, 0, 0, 0.08);
-      color: #666;
+    .clear-history {
+      background: rgba(255, 107, 107, 0.15);
+      color: #ff6b6b;
       border: none;
       padding: 3px 8px;
       border-radius: 5px;
@@ -84,12 +74,7 @@
       font-weight: 600;
     }
 
-    .clear-history {
-      background: rgba(255, 107, 107, 0.15);
-      color: #ff6b6b;
-    }
-
-    .settings-btn:active, .clear-history:active {
+    .clear-history:active {
       transform: scale(0.95);
     }
 
@@ -277,11 +262,12 @@
 
     .display {
       background: #f8f8f8;
-      border-radius: 12px;
+      border-radius: 12px 12px 0 0;
       padding: 12px 15px;
       color: #333;
       text-align: right;
       border: 1px solid #e0e0e0;
+      border-bottom: none;
       flex-shrink: 0;
     }
 
@@ -314,8 +300,10 @@
     }
 
     .keyboard-section {
-      padding: 5px 15px 15px 15px;
+      padding: 0 15px 15px 15px;
+      padding-bottom: calc(15px + env(safe-area-inset-bottom));
       flex-shrink: 0;
+      background: white;
     }
 
     .buttons {
@@ -447,77 +435,63 @@
 </head>
 <body>
   <div class="calculator">
-    <div class="top-section">
-      <div class="history-section" id="historySection">
-        <div class="history-header">
-          <div class="history-title">📜 Lịch sử</div>
-          <div class="history-actions-header">
-            <button class="settings-btn" onclick="openSettings()">⚙️</button>
-            <button class="clear-history" onclick="clearHistory()">Xóa</button>
-          </div>
-        </div>
-        <div class="history-list" id="historyList">
-          <div class="no-history">Chưa có lịch sử</div>
-        </div>
+    <div class="history-section" id="historySection">
+      <div class="history-header">
+        <div class="history-title">📜 Lịch sử</div>
+        <button class="clear-history" onclick="clearHistory()">Xóa</button>
       </div>
-      
-      <div class="display">
-        <div class="expression" id="expression"></div>
-        <div class="result" id="result">0</div>
+      <div class="history-list" id="historyList">
+        <div class="no-history">Chưa có lịch sử</div>
       </div>
+    </div>
+    
+    <div class="display">
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
     </div>
 
     <div class="keyboard-section">
       <div class="buttons">
-        <button class="function" onclick="clearAll()">AC</button>
-        <button class="delete" onclick="deleteLastChar()">⌫</button>
-        <button class="function" onclick="addParenthesis('(')">(</button>
-        <button class="function" onclick="addParenthesis(')')">)</button>
+        <button class="function" id="acBtn">AC</button>
+        <button class="delete" id="delBtn">⌫</button>
+        <button class="function" id="openParenBtn">(</button>
+        <button class="function" id="closeParenBtn">)</button>
 
-        <button class="number" onclick="appendNumber('7')">7</button>
-        <button class="number" onclick="appendNumber('8')">8</button>
-        <button class="number" onclick="appendNumber('9')">9</button>
-        <button class="operator" id="divideBtn" onclick="addOperator('÷')">
-          ÷
-          <span class="operator-badge">√</span>
-        </button>
+        <button class="number" id="btn7">7</button>
+        <button class="number" id="btn8">8</button>
+        <button class="number" id="btn9">9</button>
+        <button class="operator" id="divideBtn">÷<span class="operator-badge">√</span></button>
 
-        <button class="number" onclick="appendNumber('4')">4</button>
-        <button class="number" onclick="appendNumber('5')">5</button>
-        <button class="number" onclick="appendNumber('6')">6</button>
-        <button class="operator" id="multiplyBtn" onclick="addOperator('×')">
-          ×
-          <span class="operator-badge">^</span>
-        </button>
+        <button class="number" id="btn4">4</button>
+        <button class="number" id="btn5">5</button>
+        <button class="number" id="btn6">6</button>
+        <button class="operator" id="multiplyBtn">×<span class="operator-badge">^</span></button>
 
-        <button class="number" onclick="appendNumber('1')">1</button>
-        <button class="number" onclick="appendNumber('2')">2</button>
-        <button class="number" onclick="appendNumber('3')">3</button>
-        <button class="operator" id="minusBtn" onclick="addOperator('-')">
-          -
-          <span class="operator-badge">%</span>
-        </button>
+        <button class="number" id="btn1">1</button>
+        <button class="number" id="btn2">2</button>
+        <button class="number" id="btn3">3</button>
+        <button class="operator" id="minusBtn">-<span class="operator-badge">%</span></button>
 
-        <button class="number" onclick="appendNumber('0')">0</button>
-        <button class="number" onclick="appendNumber('000')">000</button>
-        <button class="number" onclick="appendNumber('.')">.</button>
-        <button class="operator" onclick="addOperator('+')">+</button>
+        <button class="number" id="btn0">0</button>
+        <button class="number" id="btn000">000</button>
+        <button class="number" id="btnDot">.</button>
+        <button class="operator" id="plusBtn">+</button>
 
-        <button class="equals" onclick="calculate()" style="grid-column: span 4;">=</button>
+        <button class="equals" id="equalsBtn" style="grid-column: span 4;">=</button>
       </div>
     </div>
   </div>
 
-  <div class="settings-modal" id="settingsModal" onclick="closeSettingsIfClickOutside(event)">
+  <div class="settings-modal" id="settingsModal">
     <div class="settings-content" onclick="event.stopPropagation()">
       <div class="settings-header">
         <h3>⚙️ Cài đặt</h3>
-        <button class="close-settings" onclick="closeSettings()">×</button>
+        <button class="close-settings" id="closeSettingsBtn">×</button>
       </div>
       <div class="settings-option">
         <div class="settings-label">🔊 Âm thanh phím</div>
         <label class="toggle-switch">
-          <input type="checkbox" id="soundToggle" onchange="toggleSound()" checked>
+          <input type="checkbox" id="soundToggle" checked>
           <span class="slider-toggle"></span>
         </label>
       </div>
@@ -538,10 +512,7 @@
     const historyList = document.getElementById('historyList');
     const historySection = document.getElementById('historySection');
     const soundToggle = document.getElementById('soundToggle');
-    
-    const divideBtn = document.getElementById('divideBtn');
-    const multiplyBtn = document.getElementById('multiplyBtn');
-    const minusBtn = document.getElementById('minusBtn');
+    const settingsModal = document.getElementById('settingsModal');
 
     soundToggle.checked = soundEnabled;
 
@@ -581,17 +552,11 @@
     }
 
     function openSettings() {
-      document.getElementById('settingsModal').classList.add('show');
+      settingsModal.classList.add('show');
     }
 
     function closeSettings() {
-      document.getElementById('settingsModal').classList.remove('show');
-    }
-
-    function closeSettingsIfClickOutside(event) {
-      if (event.target.id === 'settingsModal') {
-        closeSettings();
-      }
+      settingsModal.classList.remove('show');
     }
 
     function formatNumber(num) {
@@ -616,44 +581,6 @@
       }, 200);
     }
 
-    setupLongPress(divideBtn, squareRoot);
-    setupLongPress(multiplyBtn, () => addOperator('^'));
-    setupLongPress(minusBtn, percentage);
-
-    function setupLongPress(button, action) {
-      let pressTimer;
-      let isLongPress = false;
-      
-      const startPress = () => {
-        isLongPress = false;
-        pressTimer = setTimeout(() => {
-          isLongPress = true;
-          action();
-          navigator.vibrate && navigator.vibrate(50);
-        }, 500);
-      };
-      
-      const cancelPress = () => {
-        clearTimeout(pressTimer);
-      };
-      
-      const handleClick = (e) => {
-        if (isLongPress) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-        return true;
-      };
-      
-      button.addEventListener('touchstart', startPress);
-      button.addEventListener('mousedown', startPress);
-      button.addEventListener('touchend', cancelPress);
-      button.addEventListener('mouseup', cancelPress);
-      button.addEventListener('touchmove', cancelPress);
-      button.addEventListener('click', handleClick);
-    }
-
     function updateDisplay() {
       const displayValue = showEquals ? '= ' + result : result;
       resultDisplay.textContent = formatNumber(displayValue);
@@ -668,12 +595,9 @@
 
       historyList.innerHTML = history.map((item, index) => `
         <div class="history-item-wrapper" id="history-${index}">
-          <div class="history-item" ontouchstart="handleSwipeStart(event, ${index})" ontouchmove="handleSwipeMove(event, ${index})" ontouchend="handleSwipeEnd(event, ${index})" onclick="useHistoryResult(${index})">
+          <div class="history-item">
             <div class="history-expression">${item.expression}</div>
             <div class="history-result">= ${formatNumber(item.result)}</div>
-          </div>
-          <div class="history-actions">
-            <button class="edit-btn" onclick="editHistory(${index})">✏️</button>
           </div>
         </div>
       `).join('');
@@ -683,83 +607,11 @@
       }, 100);
     }
 
-    let swipeStartX = 0;
-    let currentSwipeIndex = null;
-
-    function handleSwipeStart(e, index) {
-      swipeStartX = e.touches[0].clientX;
-      currentSwipeIndex = index;
-    }
-
-    function handleSwipeMove(e, index) {
-      if (currentSwipeIndex !== index) return;
-      
-      const currentX = e.touches[0].clientX;
-      const diff = swipeStartX - currentX;
-      
-      if (diff > 0 && diff < 70) {
-        const item = document.querySelector(`#history-${index} .history-item`);
-        item.style.transform = `translateX(-${diff}px)`;
-      }
-    }
-
-    function handleSwipeEnd(e, index) {
-      if (currentSwipeIndex !== index) return;
-      
-      const item = document.querySelector(`#history-${index} .history-item`);
-      const diff = swipeStartX - e.changedTouches[0].clientX;
-      
-      if (diff > 40) {
-        item.classList.add('swiped');
-      } else {
-        item.style.transform = 'translateX(0)';
-      }
-      
-      currentSwipeIndex = null;
-    }
-
-    function editHistory(index) {
-      const item = history[index];
-      const parts = item.expression.split(/([+\-×÷^])/);
-      
-      if (parts.length >= 3) {
-        expression = parts.slice(0, -1).join(' ') + ' ' + parts[parts.length - 2] + ' ';
-        result = parts[parts.length - 1] || '0';
-      } else {
-        result = item.result;
-        expression = '';
-      }
-      
-      justCalculated = false;
-      showEquals = false;
-      updateDisplay();
-      
-      const itemElement = document.querySelector(`#history-${index} .history-item`);
-      itemElement.classList.remove('swiped');
-    }
-
     function addToHistory(expr, res) {
       history.push({ expression: expr, result: res });
       if (history.length > 50) history.shift();
       localStorage.setItem('calcHistory', JSON.stringify(history));
       updateHistoryDisplay();
-    }
-
-    function useHistoryResult(index) {
-      const item = document.querySelector(`#history-${index} .history-item`);
-      if (item.classList.contains('swiped')) {
-        item.classList.remove('swiped');
-        return;
-      }
-      
-      const historyItem = history[index];
-      result = historyItem.result;
-      expression = '';
-      lastCalculation = '';
-      justCalculated = false;
-      showEquals = false;
-      updateDisplay();
-      playClickSound();
     }
 
     function clearHistory() {
@@ -828,15 +680,15 @@
 
       result = removeFormatting(result);
 
-      if (expression && result !== '0') {
+      if (result !== '0') {
         expression += result + ' ' + op + ' ';
         result = '0';
+      } else if (expression && !expression.endsWith(' ')) {
+        expression += ' ' + op + ' ';
       } else if (expression) {
         expression = expression.slice(0, -3) + ' ' + op + ' ';
-      } else {
-        expression = result + ' ' + op + ' ';
-        result = '0';
       }
+      
       updateDisplay();
     }
 
@@ -851,66 +703,57 @@
       result = removeFormatting(result);
 
       if (type === '(') {
-        if (result !== '0' && expression && !expression.endsWith(' ')) {
-          expression += ' × (';
-        } else if (result !== '0') {
+        if (expression && result !== '0') {
           expression += result + ' × (';
+          result = '0';
         } else {
           expression += '(';
         }
-        result = '0';
       } else {
         if (result !== '0') {
-          expression += result + ')';
+          expression += result;
+          result = '0';
+        }
+        expression += ')';
+      }
+      
+      updateDisplay();
+    }
+
+    function addSpecialOperator(op) {
+      playClickSound();
+      
+      if (result === 'Lỗi') {
+        clearAll();
+        return;
+      }
+
+      result = removeFormatting(result);
+
+      if (op === '√') {
+        if (result !== '0' && expression) {
+          expression += result + ' + √(';
+          result = '0';
+        } else if (result !== '0') {
+          expression = '√(' + result + ')';
           result = '0';
         } else {
-          expression += ')';
+          expression += '√(';
+        }
+      } else if (op === '^') {
+        if (result !== '0') {
+          expression += result + '^';
+          result = '0';
+        } else if (expression) {
+          expression += '^';
+        }
+      } else if (op === '%') {
+        if (result !== '0') {
+          expression += '(' + result + '/100)';
+          result = '0';
         }
       }
-      updateDisplay();
-    }
-
-    function squareRoot() {
-      playClickSound();
       
-      if (result === 'Lỗi') {
-        clearAll();
-        return;
-      }
-
-      result = removeFormatting(result);
-      const num = parseFloat(result);
-      
-      if (num < 0) {
-        result = 'Lỗi';
-        setTimeout(clearAll, 1500);
-      } else {
-        const originalNum = result;
-        result = Math.sqrt(num).toString();
-        if (result.length > 12) {
-          result = parseFloat(result).toFixed(8);
-        }
-        addToHistory(`√${originalNum}`, result);
-        justCalculated = true;
-        showEquals = true;
-      }
-      updateDisplay();
-    }
-
-    function percentage() {
-      playClickSound();
-      
-      if (result === 'Lỗi') {
-        clearAll();
-        return;
-      }
-
-      result = removeFormatting(result);
-      const originalNum = result;
-      result = (parseFloat(result) / 100).toString();
-      addToHistory(`${originalNum}%`, result);
-      justCalculated = true;
-      showEquals = true;
       updateDisplay();
     }
 
@@ -924,9 +767,19 @@
 
       try {
         result = removeFormatting(result);
-        let fullExpression = expression + result;
+        
+        let fullExpression = expression;
+        if (result !== '0') {
+          fullExpression += result;
+        }
+        
+        if (fullExpression.trim() === '') {
+          return;
+        }
+        
         lastCalculation = fullExpression;
 
+        fullExpression = fullExpression.replace(/√\(([^)]+)\)/g, 'Math.sqrt($1)');
         fullExpression = fullExpression.replace(/×/g, '*');
         fullExpression = fullExpression.replace(/÷/g, '/');
         fullExpression = fullExpression.replace(/\^/g, '**');
@@ -969,25 +822,103 @@
       updateDisplay();
     }
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
-      if (e.key === '.') appendNumber('.');
-      if (e.key === '+') addOperator('+');
-      if (e.key === '-') addOperator('-');
-      if (e.key === '*') addOperator('×');
-      if (e.key === '/') {
-        e.preventDefault();
-        addOperator('÷');
-      }
-      if (e.key === 'Backspace') deleteLastChar();
-      if (e.key === '(') addParenthesis('(');
-      if (e.key === ')') addParenthesis(')');
-      if (e.key === 'Enter' || e.key === '=') {
-        e.preventDefault();
-        calculate();
-      }
-      if (e.key === 'Escape' || e.key === 'c') clearAll();
+    // Setup buttons
+    document.getElementById('btn7').onclick = () => appendNumber('7');
+    document.getElementById('btn8').onclick = () => appendNumber('8');
+    document.getElementById('btn9').onclick = () => appendNumber('9');
+    document.getElementById('btn4').onclick = () => appendNumber('4');
+    document.getElementById('btn5').onclick = () => appendNumber('5');
+    document.getElementById('btn6').onclick = () => appendNumber('6');
+    document.getElementById('btn1').onclick = () => appendNumber('1');
+    document.getElementById('btn2').onclick = () => appendNumber('2');
+    document.getElementById('btn3').onclick = () => appendNumber('3');
+    document.getElementById('btn0').onclick = () => appendNumber('0');
+    document.getElementById('btn000').onclick = () => appendNumber('000');
+    document.getElementById('btnDot').onclick = () => appendNumber('.');
+    
+    document.getElementById('delBtn').onclick = deleteLastChar;
+    document.getElementById('openParenBtn').onclick = () => addParenthesis('(');
+    document.getElementById('closeParenBtn').onclick = () => addParenthesis(')');
+    document.getElementById('plusBtn').onclick = () => addOperator('+');
+    document.getElementById('equalsBtn').onclick = calculate;
+    
+    document.getElementById('closeSettingsBtn').onclick = closeSettings;
+    soundToggle.onchange = toggleSound;
+    settingsModal.onclick = (e) => {
+      if (e.target === settingsModal) closeSettings();
+    };
+
+    // Long press AC for settings
+    let acTimer;
+    let acLongPress = false;
+    document.getElementById('acBtn').addEventListener('touchstart', () => {
+      acLongPress = false;
+      acTimer = setTimeout(() => {
+        acLongPress = true;
+        openSettings();
+      }, 500);
     });
+    document.getElementById('acBtn').addEventListener('touchend', () => {
+      clearTimeout(acTimer);
+    });
+    document.getElementById('acBtn').onclick = (e) => {
+      if (!acLongPress) clearAll();
+      e.preventDefault();
+    };
+
+    // Long press divide for sqrt
+    let divTimer;
+    let divLongPress = false;
+    document.getElementById('divideBtn').addEventListener('touchstart', () => {
+      divLongPress = false;
+      divTimer = setTimeout(() => {
+        divLongPress = true;
+        addSpecialOperator('√');
+      }, 500);
+    });
+    document.getElementById('divideBtn').addEventListener('touchend', () => {
+      clearTimeout(divTimer);
+    });
+    document.getElementById('divideBtn').onclick = (e) => {
+      if (!divLongPress) addOperator('÷');
+      e.preventDefault();
+    };
+
+    // Long press multiply for power
+    let multTimer;
+    let multLongPress = false;
+    document.getElementById('multiplyBtn').addEventListener('touchstart', () => {
+      multLongPress = false;
+      multTimer = setTimeout(() => {
+        multLongPress = true;
+        addSpecialOperator('^');
+      }, 500);
+    });
+    document.getElementById('multiplyBtn').addEventListener('touchend', () => {
+      clearTimeout(multTimer);
+    });
+    document.getElementById('multiplyBtn').onclick = (e) => {
+      if (!multLongPress) addOperator('×');
+      e.preventDefault();
+    };
+
+    // Long press minus for percent
+    let minusTimer;
+    let minusLongPress = false;
+    document.getElementById('minusBtn').addEventListener('touchstart', () => {
+      minusLongPress = false;
+      minusTimer = setTimeout(() => {
+        minusLongPress = true;
+        addSpecialOperator('%');
+      }, 500);
+    });
+    document.getElementById('minusBtn').addEventListener('touchend', () => {
+      clearTimeout(minusTimer);
+    });
+    document.getElementById('minusBtn').onclick = (e) => {
+      if (!minusLongPress) addOperator('-');
+      e.preventDefault();
+    };
 
     updateDisplay();
     updateHistoryDisplay();
