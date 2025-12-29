@@ -18,7 +18,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Arial, sans-serif;
-      background: #ffffff;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       height: 100vh;
       display: flex;
       flex-direction: column;
@@ -34,42 +34,45 @@
       max-width: 500px;
       width: 100%;
       margin: 0 auto;
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+    }
+
+    /* Phần trên: Lịch sử + Display - 2/5 màn hình */
+    .top-section {
+      height: 40%;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 20px;
     }
 
     .history-section {
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 10px 15px;
-      min-height: 0;
+      margin-bottom: 10px;
     }
 
     .history-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
-      padding: 0 2px;
-      position: sticky;
-      top: 0;
-      background: white;
-      z-index: 10;
-      padding-top: env(safe-area-inset-top);
+      margin-bottom: 10px;
     }
 
     .history-title {
-      color: rgba(0, 0, 0, 0.5);
-      font-size: 12px;
+      color: white;
+      font-size: 14px;
       font-weight: 600;
+      opacity: 0.8;
     }
 
     .clear-history {
-      background: rgba(255, 107, 107, 0.15);
-      color: #ff6b6b;
+      background: rgba(255, 107, 107, 0.8);
+      color: white;
       border: none;
-      padding: 3px 8px;
-      border-radius: 5px;
-      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
       cursor: pointer;
       font-weight: 600;
     }
@@ -78,115 +81,10 @@
       transform: scale(0.95);
     }
 
-    .settings-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .settings-modal.show {
-      display: flex;
-    }
-
-    .settings-content {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      width: 90%;
-      max-width: 350px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-
-    .settings-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .settings-header h3 {
-      font-size: 18px;
-      color: #333;
-    }
-
-    .close-settings {
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: #666;
-      cursor: pointer;
-      padding: 0;
-      width: 30px;
-      height: 30px;
-    }
-
-    .settings-option {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-    }
-
-    .settings-label {
-      font-size: 15px;
-      color: #333;
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 50px;
-      height: 28px;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider-toggle {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.3s;
-      border-radius: 28px;
-    }
-
-    .slider-toggle:before {
-      position: absolute;
-      content: "";
-      height: 22px;
-      width: 22px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider-toggle {
-      background-color: #34c759;
-    }
-
-    input:checked + .slider-toggle:before {
-      transform: translateX(22px);
-    }
-
     .history-list {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
     }
 
     .history-item-wrapper {
@@ -195,18 +93,19 @@
     }
 
     .history-item {
-      background: #f5f5f5;
-      padding: 6px 10px;
-      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 8px 12px;
+      border-radius: 10px;
       cursor: pointer;
       transition: transform 0.3s ease;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
       position: relative;
       z-index: 2;
     }
 
     .history-item.swiped {
-      transform: translateX(-70px);
+      transform: translateX(-80px);
     }
 
     .history-actions {
@@ -214,10 +113,11 @@
       right: 0;
       top: 0;
       bottom: 0;
-      width: 70px;
+      width: 80px;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 8px;
       z-index: 1;
     }
 
@@ -225,10 +125,10 @@
       background: #4CAF50;
       color: white;
       border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      font-size: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      font-size: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -240,106 +140,82 @@
     }
 
     .history-expression {
-      font-size: 11px;
-      color: rgba(0, 0, 0, 0.5);
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
       margin-bottom: 2px;
-      line-height: 1.2;
     }
 
     .history-result {
-      font-size: 14px;
-      color: #333;
+      font-size: 16px;
+      color: white;
       font-weight: 600;
-      line-height: 1.2;
     }
 
     .no-history {
       text-align: center;
-      color: rgba(0, 0, 0, 0.3);
-      font-size: 11px;
-      padding: 15px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      padding: 20px;
     }
 
     .display {
-      background: #f8f8f8;
-      border-radius: 12px 12px 0 0;
-      padding: 12px 15px;
-      color: #333;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 15px 20px;
+      color: white;
       text-align: right;
-      border: 1px solid #e0e0e0;
-      border-bottom: none;
-      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .expression {
-      font-size: 14px;
-      opacity: 0.5;
-      margin-bottom: 6px;
-      min-height: 17px;
+      font-size: 16px;
+      opacity: 0.7;
+      margin-bottom: 8px;
+      min-height: 20px;
       word-wrap: break-word;
-      line-height: 1.2;
     }
 
     .result {
-      font-size: 32px;
+      font-size: 36px;
       font-weight: 300;
-      line-height: 1.1;
+      line-height: 1.2;
       word-wrap: break-word;
-      transition: transform 0.1s ease;
-      color: #1a1a1a;
     }
 
-    .result.flash {
-      animation: flash 0.2s ease;
-    }
-
-    @keyframes flash {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); font-weight: 500; }
-      100% { transform: scale(1); }
-    }
-
+    /* Phần dưới: Bàn phím - 3/5 màn hình */
     .keyboard-section {
-      padding: 0 15px 15px 15px;
-      padding-bottom: calc(15px + env(safe-area-inset-bottom));
-      flex-shrink: 0;
-      background: white;
+      height: 60%;
+      padding: 10px 20px 20px 20px;
     }
 
     .buttons {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
+      gap: 10px;
+      height: 100%;
     }
 
     button {
       border: none;
-      border-radius: 16px;
-      font-size: 24px;
+      border-radius: 18px;
+      font-size: 26px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.15s ease;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       position: relative;
       overflow: visible;
-      height: 65px;
-      background: #e8e8e8;
-      color: #333;
     }
 
     button:active {
-      transform: scale(0.92);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-      font-weight: 700;
+      transform: scale(0.95);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .number {
-      background: #e8e8e8;
+      background: rgba(255, 255, 255, 0.95);
       color: #333;
-    }
-
-    .number:active {
-      background: #d8d8d8;
     }
 
     .operator {
@@ -348,26 +224,18 @@
       position: relative;
     }
 
-    .operator:active {
-      background: #ff8000;
-    }
-
     .operator-badge {
       position: absolute;
-      top: 5px;
-      right: 5px;
-      font-size: 13px;
+      top: 6px;
+      right: 6px;
+      font-size: 14px;
       opacity: 0.7;
       font-weight: 600;
     }
 
     .function {
-      background: #e8e8e8;
-      color: #333;
-    }
-
-    .function:active {
-      background: #d8d8d8;
+      background: rgba(255, 255, 255, 0.3);
+      color: white;
     }
 
     .equals {
@@ -375,125 +243,87 @@
       color: white;
     }
 
-    .equals:active {
-      background: #2fb350;
-    }
-
     .delete {
-      background: #e8e8e8;
-      color: #ff6b6b;
-      font-size: 20px;
-    }
-
-    .delete:active {
-      background: #d8d8d8;
+      background: #ff6b6b;
+      color: white;
+      font-size: 22px;
     }
 
     .error {
       color: #ff6b6b;
     }
 
-    .history-section::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    .history-section::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .history-section::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 2px;
-    }
-
     @media (max-width: 400px) {
       .result {
-        font-size: 28px;
+        font-size: 32px;
       }
       
       button {
         font-size: 22px;
-        height: 60px;
       }
       
       .operator-badge {
         font-size: 12px;
       }
     }
-
-    @media (max-height: 700px) {
-      button {
-        height: 55px;
-        font-size: 22px;
-      }
-      
-      .result {
-        font-size: 28px;
-      }
-    }
   </style>
 </head>
 <body>
   <div class="calculator">
-    <div class="history-section" id="historySection">
-      <div class="history-header">
-        <div class="history-title">📜 Lịch sử</div>
-        <button class="clear-history" onclick="clearHistory()">Xóa</button>
+    <!-- Phần trên: 2/5 màn hình -->
+    <div class="top-section">
+      <div class="history-section" id="historySection">
+        <div class="history-header">
+          <div class="history-title">📜 Lịch sử</div>
+          <button class="clear-history" onclick="clearHistory()">Xóa</button>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="no-history">Chưa có lịch sử</div>
+        </div>
       </div>
-      <div class="history-list" id="historyList">
-        <div class="no-history">Chưa có lịch sử</div>
+      
+      <div class="display">
+        <div class="expression" id="expression"></div>
+        <div class="result" id="result">0</div>
       </div>
-    </div>
-    
-    <div class="display">
-      <div class="expression" id="expression"></div>
-      <div class="result" id="result">0</div>
     </div>
 
+    <!-- Phần dưới: 3/5 màn hình -->
     <div class="keyboard-section">
       <div class="buttons">
-        <button class="function" id="acBtn">AC</button>
-        <button class="delete" id="delBtn">⌫</button>
-        <button class="function" id="openParenBtn">(</button>
-        <button class="function" id="closeParenBtn">)</button>
+        <button class="function" onclick="clearAll()">AC</button>
+        <button class="function" onclick="addParenthesis()">()</button>
+        <button class="delete" onclick="deleteLastChar()">⌫</button>
+        <button class="operator" id="divideBtn" onclick="addOperator('÷')">
+          ÷
+          <span class="operator-badge">√</span>
+        </button>
 
-        <button class="number" id="btn7">7</button>
-        <button class="number" id="btn8">8</button>
-        <button class="number" id="btn9">9</button>
-        <button class="operator" id="divideBtn">÷<span class="operator-badge">√</span></button>
+        <button class="number" onclick="appendNumber('7')">7</button>
+        <button class="number" onclick="appendNumber('8')">8</button>
+        <button class="number" onclick="appendNumber('9')">9</button>
+        <button class="operator" id="multiplyBtn" onclick="addOperator('×')">
+          ×
+          <span class="operator-badge">^</span>
+        </button>
 
-        <button class="number" id="btn4">4</button>
-        <button class="number" id="btn5">5</button>
-        <button class="number" id="btn6">6</button>
-        <button class="operator" id="multiplyBtn">×<span class="operator-badge">^</span></button>
+        <button class="number" onclick="appendNumber('4')">4</button>
+        <button class="number" onclick="appendNumber('5')">5</button>
+        <button class="number" onclick="appendNumber('6')">6</button>
+        <button class="operator" id="minusBtn" onclick="addOperator('-')">
+          -
+          <span class="operator-badge">%</span>
+        </button>
 
-        <button class="number" id="btn1">1</button>
-        <button class="number" id="btn2">2</button>
-        <button class="number" id="btn3">3</button>
-        <button class="operator" id="minusBtn">-<span class="operator-badge">%</span></button>
+        <button class="number" onclick="appendNumber('1')">1</button>
+        <button class="number" onclick="appendNumber('2')">2</button>
+        <button class="number" onclick="appendNumber('3')">3</button>
+        <button class="operator" onclick="addOperator('+')">+</button>
 
-        <button class="number" id="btn0">0</button>
-        <button class="number" id="btn000">000</button>
-        <button class="number" id="btnDot">.</button>
-        <button class="operator" id="plusBtn">+</button>
-
-        <button class="equals" id="equalsBtn" style="grid-column: span 4;">=</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="settings-modal" id="settingsModal">
-    <div class="settings-content" onclick="event.stopPropagation()">
-      <div class="settings-header">
-        <h3>⚙️ Cài đặt</h3>
-        <button class="close-settings" id="closeSettingsBtn">×</button>
-      </div>
-      <div class="settings-option">
-        <div class="settings-label">🔊 Âm thanh phím</div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="soundToggle" checked>
-          <span class="slider-toggle"></span>
-        </label>
+        <button class="number" onclick="appendNumber('0')">0</button>
+        <button class="number" onclick="appendNumber('000')">000</button>
+        <button class="number" onclick="appendNumber('.')">.</button>
+        <button class="equals" onclick="calculate()">=</button>
       </div>
     </div>
   </div>
@@ -503,87 +333,64 @@
     let result = '0';
     let lastCalculation = '';
     let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+    let longPressTimer;
     let justCalculated = false;
     let showEquals = false;
-    let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
 
     const resultDisplay = document.getElementById('result');
     const expressionDisplay = document.getElementById('expression');
     const historyList = document.getElementById('historyList');
     const historySection = document.getElementById('historySection');
-    const soundToggle = document.getElementById('soundToggle');
-    const settingsModal = document.getElementById('settingsModal');
+    
+    const divideBtn = document.getElementById('divideBtn');
+    const multiplyBtn = document.getElementById('multiplyBtn');
+    const minusBtn = document.getElementById('minusBtn');
 
-    soundToggle.checked = soundEnabled;
+    // Thiết lập nhấn giữ cho các nút
+    setupLongPress(divideBtn, squareRoot);
+    setupLongPress(multiplyBtn, () => addOperator('^'));
+    setupLongPress(minusBtn, percentage);
 
-    let audioContext;
-    function initAudio() {
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      }
-    }
-
-    function playClickSound() {
-      if (!soundEnabled) return;
+    function setupLongPress(button, action) {
+      let pressTimer;
+      let isLongPress = false;
       
-      initAudio();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+      const startPress = (e) => {
+        isLongPress = false;
+        pressTimer = setTimeout(() => {
+          isLongPress = true;
+          action();
+          navigator.vibrate && navigator.vibrate(50);
+        }, 500);
+      };
       
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      const cancelPress = () => {
+        clearTimeout(pressTimer);
+      };
       
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
+      const handleClick = (e) => {
+        if (!isLongPress) {
+          return true;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      };
       
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.05);
-    }
-
-    function toggleSound() {
-      soundEnabled = soundToggle.checked;
-      localStorage.setItem('soundEnabled', soundEnabled);
-      if (soundEnabled) {
-        playClickSound();
-      }
-    }
-
-    function openSettings() {
-      settingsModal.classList.add('show');
-    }
-
-    function closeSettings() {
-      settingsModal.classList.remove('show');
-    }
-
-    function formatNumber(num) {
-      const str = num.toString();
-      if (str.includes('=')) {
-        const parts = str.split('=');
-        return parts[0] + '=' + parts[1].trim().replace(/\B(?=(\d{3})+(?!\d))/g, "'");
-      }
-      const parts = str.split('.');
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "'");
-      return parts.join('.');
-    }
-
-    function removeFormatting(num) {
-      return num.replace(/'/g, '');
-    }
-
-    function flashDisplay() {
-      resultDisplay.classList.add('flash');
-      setTimeout(() => {
-        resultDisplay.classList.remove('flash');
-      }, 200);
+      button.addEventListener('touchstart', startPress);
+      button.addEventListener('mousedown', startPress);
+      button.addEventListener('touchend', cancelPress);
+      button.addEventListener('mouseup', cancelPress);
+      button.addEventListener('touchmove', cancelPress);
+      button.addEventListener('click', handleClick);
     }
 
     function updateDisplay() {
-      const displayValue = showEquals ? '= ' + result : result;
-      resultDisplay.textContent = formatNumber(displayValue);
+      if (showEquals) {
+        resultDisplay.textContent = '= ' + result;
+      } else {
+        resultDisplay.textContent = result;
+      }
       expressionDisplay.textContent = expression || lastCalculation;
     }
 
@@ -595,16 +402,77 @@
 
       historyList.innerHTML = history.map((item, index) => `
         <div class="history-item-wrapper" id="history-${index}">
-          <div class="history-item">
+          <div class="history-item" ontouchstart="handleSwipeStart(event, ${index})" ontouchmove="handleSwipeMove(event, ${index})" ontouchend="handleSwipeEnd(event, ${index})" onclick="useHistoryResult(${index})">
             <div class="history-expression">${item.expression}</div>
-            <div class="history-result">= ${formatNumber(item.result)}</div>
+            <div class="history-result">= ${item.result}</div>
+          </div>
+          <div class="history-actions">
+            <button class="edit-btn" onclick="editHistory(${index})">✏️</button>
           </div>
         </div>
       `).join('');
 
+      // Cuộn xuống dưới cùng để thấy phép tính mới nhất
       setTimeout(() => {
         historySection.scrollTop = historySection.scrollHeight;
       }, 100);
+    }
+
+    let swipeStartX = 0;
+    let currentSwipeIndex = null;
+
+    function handleSwipeStart(e, index) {
+      swipeStartX = e.touches[0].clientX;
+      currentSwipeIndex = index;
+    }
+
+    function handleSwipeMove(e, index) {
+      if (currentSwipeIndex !== index) return;
+      
+      const currentX = e.touches[0].clientX;
+      const diff = swipeStartX - currentX;
+      
+      if (diff > 0 && diff < 80) {
+        const item = document.querySelector(`#history-${index} .history-item`);
+        item.style.transform = `translateX(-${diff}px)`;
+      }
+    }
+
+    function handleSwipeEnd(e, index) {
+      if (currentSwipeIndex !== index) return;
+      
+      const item = document.querySelector(`#history-${index} .history-item`);
+      const diff = swipeStartX - e.changedTouches[0].clientX;
+      
+      if (diff > 40) {
+        item.classList.add('swiped');
+      } else {
+        item.style.transform = 'translateX(0)';
+      }
+      
+      currentSwipeIndex = null;
+    }
+
+    function editHistory(index) {
+      const item = history[index];
+      // Tách phép tính thành expression và result
+      const parts = item.expression.split(/([+\-×÷^])/);
+      
+      if (parts.length >= 3) {
+        expression = parts.slice(0, -1).join(' ') + ' ' + parts[parts.length - 2] + ' ';
+        result = parts[parts.length - 1] || '0';
+      } else {
+        result = item.result;
+        expression = '';
+      }
+      
+      justCalculated = false;
+      showEquals = false;
+      updateDisplay();
+      
+      // Đóng swipe
+      const itemElement = document.querySelector(`#history-${index} .history-item`);
+      itemElement.classList.remove('swiped');
     }
 
     function addToHistory(expr, res) {
@@ -612,6 +480,23 @@
       if (history.length > 50) history.shift();
       localStorage.setItem('calcHistory', JSON.stringify(history));
       updateHistoryDisplay();
+    }
+
+    function useHistoryResult(index) {
+      // Kiểm tra nếu đang swipe thì không load kết quả
+      const item = document.querySelector(`#history-${index} .history-item`);
+      if (item.classList.contains('swiped')) {
+        item.classList.remove('swiped');
+        return;
+      }
+      
+      const historyItem = history[index];
+      result = historyItem.result;
+      expression = '';
+      lastCalculation = '';
+      justCalculated = false;
+      showEquals = false;
+      updateDisplay();
     }
 
     function clearHistory() {
@@ -623,9 +508,7 @@
     }
 
     function appendNumber(num) {
-      playClickSound();
-      flashDisplay();
-      
+      // Nếu vừa tính xong, bắt đầu phép tính mới
       if (justCalculated) {
         result = '0';
         expression = '';
@@ -633,8 +516,6 @@
         justCalculated = false;
         showEquals = false;
       }
-      
-      result = removeFormatting(result);
       
       if (result === '0' && num !== '.') {
         result = num;
@@ -649,13 +530,9 @@
     }
 
     function deleteLastChar() {
-      playClickSound();
-      
       if (result === 'Lỗi' || result === '0') {
         return;
       }
-      
-      result = removeFormatting(result);
       
       if (result.length === 1) {
         result = '0';
@@ -666,8 +543,7 @@
     }
 
     function addOperator(op) {
-      playClickSound();
-      
+      // Nếu vừa tính xong, dùng kết quả để tiếp tục
       if (justCalculated) {
         justCalculated = false;
         showEquals = false;
@@ -678,108 +554,88 @@
         return;
       }
 
-      result = removeFormatting(result);
-
-      if (result !== '0') {
+      if (expression && !isNaN(result[result.length - 1])) {
         expression += result + ' ' + op + ' ';
         result = '0';
-      } else if (expression && !expression.endsWith(' ')) {
-        expression += ' ' + op + ' ';
       } else if (expression) {
         expression = expression.slice(0, -3) + ' ' + op + ' ';
+      } else {
+        expression = result + ' ' + op + ' ';
+        result = '0';
       }
-      
       updateDisplay();
     }
 
-    function addParenthesis(type) {
-      playClickSound();
-      
+    function addParenthesis() {
       if (result === 'Lỗi') {
         clearAll();
         return;
       }
 
-      result = removeFormatting(result);
+      const openCount = (expression.match(/\(/g) || []).length;
+      const closeCount = (expression.match(/\)/g) || []).length;
 
-      if (type === '(') {
-        if (expression && result !== '0') {
+      if (openCount === closeCount) {
+        if (result !== '0' && expression) {
           expression += result + ' × (';
-          result = '0';
         } else {
           expression += '(';
         }
+        result = '0';
       } else {
-        if (result !== '0') {
-          expression += result;
-          result = '0';
-        }
-        expression += ')';
+        expression += result + ')';
+        result = '0';
       }
-      
       updateDisplay();
     }
 
-    function addSpecialOperator(op) {
-      playClickSound();
-      
+    function squareRoot() {
       if (result === 'Lỗi') {
         clearAll();
         return;
       }
 
-      result = removeFormatting(result);
-
-      if (op === '√') {
-        if (result !== '0' && expression) {
-          expression += result + ' + √(';
-          result = '0';
-        } else if (result !== '0') {
-          expression = '√(' + result + ')';
-          result = '0';
-        } else {
-          expression += '√(';
+      const num = parseFloat(result);
+      if (num < 0) {
+        result = 'Lỗi';
+        setTimeout(clearAll, 1500);
+      } else {
+        const originalNum = result;
+        result = Math.sqrt(num).toString();
+        if (result.length > 12) {
+          result = parseFloat(result).toFixed(8);
         }
-      } else if (op === '^') {
-        if (result !== '0') {
-          expression += result + '^';
-          result = '0';
-        } else if (expression) {
-          expression += '^';
-        }
-      } else if (op === '%') {
-        if (result !== '0') {
-          expression += '(' + result + '/100)';
-          result = '0';
-        }
+        addToHistory(`√${originalNum}`, result);
+        justCalculated = true;
+        showEquals = true;
       }
-      
+      updateDisplay();
+    }
+
+    function percentage() {
+      if (result === 'Lỗi') {
+        clearAll();
+        return;
+      }
+
+      const originalNum = result;
+      result = (parseFloat(result) / 100).toString();
+      addToHistory(`${originalNum}%`, result);
+      justCalculated = true;
+      showEquals = true;
       updateDisplay();
     }
 
     function calculate() {
-      playClickSound();
-      
       if (result === 'Lỗi') {
         clearAll();
         return;
       }
 
       try {
-        result = removeFormatting(result);
-        
-        let fullExpression = expression;
-        if (result !== '0') {
-          fullExpression += result;
-        }
-        
-        if (fullExpression.trim() === '') {
-          return;
-        }
-        
+        let fullExpression = expression + result;
         lastCalculation = fullExpression;
 
-        fullExpression = fullExpression.replace(/√\(([^)]+)\)/g, 'Math.sqrt($1)');
         fullExpression = fullExpression.replace(/×/g, '*');
         fullExpression = fullExpression.replace(/÷/g, '/');
         fullExpression = fullExpression.replace(/\^/g, '**');
@@ -794,7 +650,7 @@
 
         result = calculatedResult.toString();
         
-        if (result.length > 15) {
+        if (result.length > 12) {
           result = parseFloat(result).toFixed(8).replace(/\.?0+$/, '');
         }
 
@@ -813,7 +669,6 @@
     }
 
     function clearAll() {
-      playClickSound();
       expression = '';
       result = '0';
       lastCalculation = '';
@@ -822,106 +677,29 @@
       updateDisplay();
     }
 
-    // Setup buttons
-    document.getElementById('btn7').onclick = () => appendNumber('7');
-    document.getElementById('btn8').onclick = () => appendNumber('8');
-    document.getElementById('btn9').onclick = () => appendNumber('9');
-    document.getElementById('btn4').onclick = () => appendNumber('4');
-    document.getElementById('btn5').onclick = () => appendNumber('5');
-    document.getElementById('btn6').onclick = () => appendNumber('6');
-    document.getElementById('btn1').onclick = () => appendNumber('1');
-    document.getElementById('btn2').onclick = () => appendNumber('2');
-    document.getElementById('btn3').onclick = () => appendNumber('3');
-    document.getElementById('btn0').onclick = () => appendNumber('0');
-    document.getElementById('btn000').onclick = () => appendNumber('000');
-    document.getElementById('btnDot').onclick = () => appendNumber('.');
-    
-    document.getElementById('delBtn').onclick = deleteLastChar;
-    document.getElementById('openParenBtn').onclick = () => addParenthesis('(');
-    document.getElementById('closeParenBtn').onclick = () => addParenthesis(')');
-    document.getElementById('plusBtn').onclick = () => addOperator('+');
-    document.getElementById('equalsBtn').onclick = calculate;
-    
-    document.getElementById('closeSettingsBtn').onclick = closeSettings;
-    soundToggle.onchange = toggleSound;
-    settingsModal.onclick = (e) => {
-      if (e.target === settingsModal) closeSettings();
-    };
-
-    // Long press AC for settings
-    let acTimer;
-    let acLongPress = false;
-    document.getElementById('acBtn').addEventListener('touchstart', () => {
-      acLongPress = false;
-      acTimer = setTimeout(() => {
-        acLongPress = true;
-        openSettings();
-      }, 500);
+    document.addEventListener('keydown', (e) => {
+      if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+      if (e.key === '.') appendNumber('.');
+      if (e.key === '+') addOperator('+');
+      if (e.key === '-') addOperator('-');
+      if (e.key === '*') addOperator('×');
+      if (e.key === '/') {
+        e.preventDefault();
+        addOperator('÷');
+      }
+      if (e.key === 'Backspace') deleteLastChar();
+      if (e.key === '(') addParenthesis();
+      if (e.key === ')') addParenthesis();
+      if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();
+        calculate();
+      }
+      if (e.key === 'Escape' || e.key === 'c') clearAll();
     });
-    document.getElementById('acBtn').addEventListener('touchend', () => {
-      clearTimeout(acTimer);
-    });
-    document.getElementById('acBtn').onclick = (e) => {
-      if (!acLongPress) clearAll();
-      e.preventDefault();
-    };
-
-    // Long press divide for sqrt
-    let divTimer;
-    let divLongPress = false;
-    document.getElementById('divideBtn').addEventListener('touchstart', () => {
-      divLongPress = false;
-      divTimer = setTimeout(() => {
-        divLongPress = true;
-        addSpecialOperator('√');
-      }, 500);
-    });
-    document.getElementById('divideBtn').addEventListener('touchend', () => {
-      clearTimeout(divTimer);
-    });
-    document.getElementById('divideBtn').onclick = (e) => {
-      if (!divLongPress) addOperator('÷');
-      e.preventDefault();
-    };
-
-    // Long press multiply for power
-    let multTimer;
-    let multLongPress = false;
-    document.getElementById('multiplyBtn').addEventListener('touchstart', () => {
-      multLongPress = false;
-      multTimer = setTimeout(() => {
-        multLongPress = true;
-        addSpecialOperator('^');
-      }, 500);
-    });
-    document.getElementById('multiplyBtn').addEventListener('touchend', () => {
-      clearTimeout(multTimer);
-    });
-    document.getElementById('multiplyBtn').onclick = (e) => {
-      if (!multLongPress) addOperator('×');
-      e.preventDefault();
-    };
-
-    // Long press minus for percent
-    let minusTimer;
-    let minusLongPress = false;
-    document.getElementById('minusBtn').addEventListener('touchstart', () => {
-      minusLongPress = false;
-      minusTimer = setTimeout(() => {
-        minusLongPress = true;
-        addSpecialOperator('%');
-      }, 500);
-    });
-    document.getElementById('minusBtn').addEventListener('touchend', () => {
-      clearTimeout(minusTimer);
-    });
-    document.getElementById('minusBtn').onclick = (e) => {
-      if (!minusLongPress) addOperator('-');
-      e.preventDefault();
-    };
 
     updateDisplay();
     updateHistoryDisplay();
   </script>
 </body>
 </html>
+
