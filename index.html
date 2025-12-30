@@ -279,6 +279,9 @@
       min-height: 17px;
       word-wrap: break-word;
       line-height: 1.2;
+      cursor: text;
+      user-select: text;
+      -webkit-user-select: text;
     }
 
     .result {
@@ -450,7 +453,7 @@
     </div>
     
     <div class="display">
-      <div class="expression" id="expression"></div>
+      <div class="expression" id="expression" contenteditable="true"></div>
       <div class="result" id="result" contenteditable="true">0</div>
     </div>
 
@@ -565,14 +568,13 @@
       expressionDisplay.textContent = expression || lastCalculation;
     }
 
-    // Cho phép chỉnh sửa số
+    // Cho phép chỉnh sửa result
     resultDisplay.addEventListener('input', function() {
       let text = this.textContent.replace(/[^0-9.']/g, '');
       result = removeFormatting(text) || '0';
       justCalculated = false;
       showEquals = false;
       
-      // Cập nhật vị trí con trỏ
       const sel = window.getSelection();
       if (sel.rangeCount > 0) {
         const range = sel.getRangeAt(0);
@@ -584,10 +586,13 @@
       const text = removeFormatting(this.textContent.replace('= ', ''));
       this.textContent = text;
       isEditMode = true;
+      editingExpression = false;
     });
 
     resultDisplay.addEventListener('blur', function() {
+      if (!isEditMode) return;
       isEditMode = false;
+      editingExpression = false;
       updateDisplay();
     });
 
@@ -596,16 +601,36 @@
         e.preventDefault();
         this.blur();
         calculate();
-      } else if (e.key === 'ArrowLeft') {
-        const sel = window.getSelection();
-        if (sel.rangeCount > 0) {
-          cursorPosition = sel.getRangeAt(0).startOffset;
-        }
-      } else if (e.key === 'ArrowRight') {
-        const sel = window.getSelection();
-        if (sel.rangeCount > 0) {
-          cursorPosition = sel.getRangeAt(0).startOffset;
-        }
+      }
+    });
+
+    // Cho phép chỉnh sửa expression
+    expressionDisplay.addEventListener('input', function() {
+      expression = this.textContent;
+      
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        cursorPosition = range.startOffset;
+      }
+    });
+
+    expressionDisplay.addEventListener('click', function() {
+      isEditMode = true;
+      editingExpression = true;
+    });
+
+    expressionDisplay.addEventListener('blur', function() {
+      if (!isEditMode) return;
+      isEditMode = false;
+      editingExpression = false;
+    });
+
+    expressionDisplay.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.blur();
+        calculate();
       }
     });
 
@@ -689,26 +714,32 @@
 
     let cursorPosition = 0;
     let isEditMode = false;
+    let editingExpression = false;
 
-    function enableEditMode() {
+    function enableEditMode(target) {
       isEditMode = true;
-      resultDisplay.focus();
+      editingExpression = target === 'expression';
       
-      // Lấy text không có format
-      const text = removeFormatting(resultDisplay.textContent.replace('= ', ''));
-      resultDisplay.textContent = text;
-      
-      // Đặt con trỏ ở cuối
-      cursorPosition = text.length;
-      setCursorPosition(cursorPosition);
+      if (editingExpression) {
+        expressionDisplay.focus();
+        const text = expressionDisplay.textContent;
+        cursorPosition = text.length;
+        setCursorPosition(expressionDisplay, cursorPosition);
+      } else {
+        resultDisplay.focus();
+        const text = removeFormatting(resultDisplay.textContent.replace('= ', ''));
+        resultDisplay.textContent = text;
+        cursorPosition = text.length;
+        setCursorPosition(resultDisplay, cursorPosition);
+      }
     }
 
-    function setCursorPosition(pos) {
+    function setCursorPosition(element, pos) {
       const range = document.createRange();
       const sel = window.getSelection();
       
-      if (resultDisplay.childNodes.length > 0) {
-        const textNode = resultDisplay.childNodes[0];
+      if (element.childNodes.length > 0) {
+        const textNode = element.childNodes[0];
         const maxPos = textNode.length || 0;
         const safePos = Math.min(Math.max(0, pos), maxPos);
         
@@ -722,7 +753,17 @@
     function moveCursorLeft() {
       if (cursorPosition > 0) {
         cursorPosition--;
-        setCursorPosition(cursorPosition);
+        const target = editingExpression ? expressionDisplay : resultDisplay;
+        setCursorPosition(target, cursorPosition);
+      }
+    }
+
+    function moveCursorRight() {
+      const target = editingExpression ? expressionDisplay : resultDisplay;
+      const maxPos = target.textContent.length;
+      if (cursorPosition < maxPos) {
+        cursorPosition++;
+        setCursorPosition(target, cursorPosition);
       }
     }
 
@@ -899,14 +940,21 @@
     
     document.getElementById('delBtn').onclick = () => {
       if (isEditMode) {
-        // Trong chế độ edit, xóa ký tự tại vị trí con trỏ
-        const text = removeFormatting(resultDisplay.textContent);
+        const target = editingExpression ? expressionDisplay : resultDisplay;
+        const text = target.textContent;
+        
         if (cursorPosition > 0) {
           const newText = text.slice(0, cursorPosition - 1) + text.slice(cursorPosition);
-          result = newText || '0';
-          resultDisplay.textContent = newText || '0';
+          target.textContent = newText || (editingExpression ? '' : '0');
+          
+          if (editingExpression) {
+            expression = newText;
+          } else {
+            result = removeFormatting(newText) || '0';
+          }
+          
           cursorPosition--;
-          setCursorPosition(cursorPosition);
+          setCursorPosition(target, cursorPosition);
         }
       } else {
         deleteLastChar();
@@ -914,24 +962,36 @@
     };
     
     // Long press DEL to move cursor left
+    // Long press ( to move cursor right
     let delTimer;
     let delLongPress = false;
     let delInterval;
+    
+    let parenTimer;
+    let parenLongPress = false;
+    let parenInterval;
     
     function startDelLongPress() {
       delLongPress = false;
       delTimer = setTimeout(() => {
         delLongPress = true;
         
-        if (!isEditMode) {
-          enableEditMode();
+        // Xác định đang focus vào đâu
+        const activeElement = document.activeElement;
+        if (activeElement === expressionDisplay) {
+          enableEditMode('expression');
+        } else if (activeElement === resultDisplay) {
+          enableEditMode('result');
+        } else {
+          // Nếu không focus, focus vào result
+          enableEditMode('result');
         }
         
-        // Di chuyển con trỏ liên tục khi giữ
+        // Di chuyển con trỏ sang trái liên tục
         delInterval = setInterval(() => {
           moveCursorLeft();
           navigator.vibrate && navigator.vibrate(10);
-        }, 150);
+        }, 400);
       }, 500);
     }
     
@@ -941,11 +1001,48 @@
       delLongPress = false;
     }
     
+    function startParenLongPress() {
+      parenLongPress = false;
+      parenTimer = setTimeout(() => {
+        parenLongPress = true;
+        
+        // Xác định đang focus vào đâu
+        const activeElement = document.activeElement;
+        if (activeElement === expressionDisplay) {
+          enableEditMode('expression');
+        } else if (activeElement === resultDisplay) {
+          enableEditMode('result');
+        } else {
+          enableEditMode('result');
+        }
+        
+        // Di chuyển con trỏ sang phải liên tục
+        parenInterval = setInterval(() => {
+          moveCursorRight();
+          navigator.vibrate && navigator.vibrate(10);
+        }, 400);
+      }, 500);
+    }
+    
+    function stopParenLongPress() {
+      clearTimeout(parenTimer);
+      clearInterval(parenInterval);
+      parenLongPress = false;
+    }
+    
     document.getElementById('delBtn').addEventListener('touchstart', startDelLongPress);
     document.getElementById('delBtn').addEventListener('touchend', stopDelLongPress);
     document.getElementById('delBtn').addEventListener('mousedown', startDelLongPress);
     document.getElementById('delBtn').addEventListener('mouseup', stopDelLongPress);
     document.getElementById('delBtn').addEventListener('touchmove', stopDelLongPress);
+    
+    // Long press ( to move right
+    const openParenBtn = document.getElementById('openParenBtn');
+    openParenBtn.addEventListener('touchstart', startParenLongPress);
+    openParenBtn.addEventListener('touchend', stopParenLongPress);
+    openParenBtn.addEventListener('mousedown', startParenLongPress);
+    openParenBtn.addEventListener('mouseup', stopParenLongPress);
+    openParenBtn.addEventListener('touchmove', stopParenLongPress);
     document.getElementById('openParenBtn').onclick = () => addParenthesis('(');
     document.getElementById('closeParenBtn').onclick = () => addParenthesis(')');
     document.getElementById('plusBtn').onclick = () => addOperator('+');
