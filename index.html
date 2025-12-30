@@ -571,22 +571,23 @@
       result = removeFormatting(text) || '0';
       justCalculated = false;
       showEquals = false;
+      
+      // Cập nhật vị trí con trỏ
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        cursorPosition = range.startOffset;
+      }
     });
 
-    resultDisplay.addEventListener('focus', function() {
+    resultDisplay.addEventListener('click', function() {
       const text = removeFormatting(this.textContent.replace('= ', ''));
       this.textContent = text;
-      setTimeout(() => {
-        const range = document.createRange();
-        const sel = window.getSelection();
-        range.selectNodeContents(this);
-        range.collapse(false);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }, 10);
+      isEditMode = true;
     });
 
     resultDisplay.addEventListener('blur', function() {
+      isEditMode = false;
       updateDisplay();
     });
 
@@ -595,6 +596,16 @@
         e.preventDefault();
         this.blur();
         calculate();
+      } else if (e.key === 'ArrowLeft') {
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+          cursorPosition = sel.getRangeAt(0).startOffset;
+        }
+      } else if (e.key === 'ArrowRight') {
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+          cursorPosition = sel.getRangeAt(0).startOffset;
+        }
       }
     });
 
@@ -676,13 +687,43 @@
       updateDisplay();
     }
 
+    let cursorPosition = 0;
+    let isEditMode = false;
+
     function enableEditMode() {
+      isEditMode = true;
       resultDisplay.focus();
-      const settingsModal = document.getElementById('settingsModal');
-      settingsModal.style.display = 'flex';
-      setTimeout(() => {
-        settingsModal.style.display = 'none';
-      }, 2000);
+      
+      // Lấy text không có format
+      const text = removeFormatting(resultDisplay.textContent.replace('= ', ''));
+      resultDisplay.textContent = text;
+      
+      // Đặt con trỏ ở cuối
+      cursorPosition = text.length;
+      setCursorPosition(cursorPosition);
+    }
+
+    function setCursorPosition(pos) {
+      const range = document.createRange();
+      const sel = window.getSelection();
+      
+      if (resultDisplay.childNodes.length > 0) {
+        const textNode = resultDisplay.childNodes[0];
+        const maxPos = textNode.length || 0;
+        const safePos = Math.min(Math.max(0, pos), maxPos);
+        
+        range.setStart(textNode, safePos);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+
+    function moveCursorLeft() {
+      if (cursorPosition > 0) {
+        cursorPosition--;
+        setCursorPosition(cursorPosition);
+      }
     }
 
     function addOperator(op) {
@@ -856,32 +897,55 @@
     document.getElementById('btn000').onclick = () => appendNumber('000');
     document.getElementById('btnDot').onclick = () => appendNumber('.');
     
-    document.getElementById('delBtn').onclick = deleteLastChar;
+    document.getElementById('delBtn').onclick = () => {
+      if (isEditMode) {
+        // Trong chế độ edit, xóa ký tự tại vị trí con trỏ
+        const text = removeFormatting(resultDisplay.textContent);
+        if (cursorPosition > 0) {
+          const newText = text.slice(0, cursorPosition - 1) + text.slice(cursorPosition);
+          result = newText || '0';
+          resultDisplay.textContent = newText || '0';
+          cursorPosition--;
+          setCursorPosition(cursorPosition);
+        }
+      } else {
+        deleteLastChar();
+      }
+    };
     
-    // Long press DEL to enable edit mode
+    // Long press DEL to move cursor left
     let delTimer;
     let delLongPress = false;
-    document.getElementById('delBtn').addEventListener('touchstart', () => {
+    let delInterval;
+    
+    function startDelLongPress() {
       delLongPress = false;
       delTimer = setTimeout(() => {
         delLongPress = true;
-        enableEditMode();
-        navigator.vibrate && navigator.vibrate(50);
+        
+        if (!isEditMode) {
+          enableEditMode();
+        }
+        
+        // Di chuyển con trỏ liên tục khi giữ
+        delInterval = setInterval(() => {
+          moveCursorLeft();
+          navigator.vibrate && navigator.vibrate(10);
+        }, 150);
       }, 500);
-    });
-    document.getElementById('delBtn').addEventListener('touchend', () => {
+    }
+    
+    function stopDelLongPress() {
       clearTimeout(delTimer);
-    });
-    document.getElementById('delBtn').addEventListener('mousedown', () => {
+      clearInterval(delInterval);
       delLongPress = false;
-      delTimer = setTimeout(() => {
-        delLongPress = true;
-        enableEditMode();
-      }, 500);
-    });
-    document.getElementById('delBtn').addEventListener('mouseup', () => {
-      clearTimeout(delTimer);
-    });
+    }
+    
+    document.getElementById('delBtn').addEventListener('touchstart', startDelLongPress);
+    document.getElementById('delBtn').addEventListener('touchend', stopDelLongPress);
+    document.getElementById('delBtn').addEventListener('mousedown', startDelLongPress);
+    document.getElementById('delBtn').addEventListener('mouseup', stopDelLongPress);
+    document.getElementById('delBtn').addEventListener('touchmove', stopDelLongPress);
     document.getElementById('openParenBtn').onclick = () => addParenthesis('(');
     document.getElementById('closeParenBtn').onclick = () => addParenthesis(')');
     document.getElementById('plusBtn').onclick = () => addOperator('+');
