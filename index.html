@@ -282,6 +282,14 @@
       cursor: text;
       user-select: text;
       -webkit-user-select: text;
+      position: relative;
+    }
+
+    .expression.editing {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.3);
+      padding: 4px;
+      border-radius: 4px;
     }
 
     .result {
@@ -294,6 +302,32 @@
       cursor: text;
       user-select: text;
       -webkit-user-select: text;
+      position: relative;
+    }
+
+    .result.editing {
+      background: rgba(255, 255, 255, 0.3);
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .cursor-indicator {
+      position: absolute;
+      width: 2px;
+      height: 80%;
+      background: #ff9500;
+      animation: blink 1s infinite;
+      pointer-events: none;
+      display: none;
+    }
+
+    .cursor-indicator.show {
+      display: block;
+    }
+
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
     }
 
     .result.flash {
@@ -453,8 +487,12 @@
     </div>
     
     <div class="display">
-      <div class="expression" id="expression" contenteditable="true"></div>
-      <div class="result" id="result" contenteditable="true">0</div>
+      <div class="expression" id="expression">
+        <span class="cursor-indicator" id="expCursor"></span>
+      </div>
+      <div class="result" id="result">0
+        <span class="cursor-indicator" id="resCursor"></span>
+      </div>
     </div>
 
     <div class="keyboard-section">
@@ -563,75 +601,28 @@
     }
 
     function updateDisplay() {
-      const displayValue = showEquals ? '= ' + result : result;
-      resultDisplay.textContent = formatNumber(displayValue);
-      expressionDisplay.textContent = expression || lastCalculation;
+      if (isEditMode) {
+        if (editingExpression) {
+          expressionDisplay.textContent = expression || '';
+        } else {
+          resultDisplay.textContent = removeFormatting(result);
+        }
+      } else {
+        const displayValue = showEquals ? '= ' + result : result;
+        resultDisplay.textContent = formatNumber(displayValue);
+        expressionDisplay.textContent = expression || lastCalculation;
+      }
     }
 
-    // Cho phép chỉnh sửa result
-    resultDisplay.addEventListener('input', function() {
-      let text = this.textContent.replace(/[^0-9.']/g, '');
-      result = removeFormatting(text) || '0';
-      justCalculated = false;
-      showEquals = false;
-      
-      const sel = window.getSelection();
-      if (sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        cursorPosition = range.startOffset;
+    // Click để vào edit mode
+    expressionDisplay.addEventListener('click', function(e) {
+      if (expression) {
+        enableEditMode('expression');
       }
     });
 
-    resultDisplay.addEventListener('click', function() {
-      const text = removeFormatting(this.textContent.replace('= ', ''));
-      this.textContent = text;
-      isEditMode = true;
-      editingExpression = false;
-    });
-
-    resultDisplay.addEventListener('blur', function() {
-      if (!isEditMode) return;
-      isEditMode = false;
-      editingExpression = false;
-      updateDisplay();
-    });
-
-    resultDisplay.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        this.blur();
-        calculate();
-      }
-    });
-
-    // Cho phép chỉnh sửa expression
-    expressionDisplay.addEventListener('input', function() {
-      expression = this.textContent;
-      
-      const sel = window.getSelection();
-      if (sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        cursorPosition = range.startOffset;
-      }
-    });
-
-    expressionDisplay.addEventListener('click', function() {
-      isEditMode = true;
-      editingExpression = true;
-    });
-
-    expressionDisplay.addEventListener('blur', function() {
-      if (!isEditMode) return;
-      isEditMode = false;
-      editingExpression = false;
-    });
-
-    expressionDisplay.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        this.blur();
-        calculate();
-      }
+    resultDisplay.addEventListener('click', function(e) {
+      enableEditMode('result');
     });
 
     function updateHistoryDisplay() {
@@ -672,6 +663,11 @@
     function appendNumber(num) {
       playClickSound();
       flashDisplay();
+      
+      if (isEditMode) {
+        insertAtCursor(num);
+        return;
+      }
       
       if (justCalculated) {
         result = '0';
@@ -769,6 +765,11 @@
 
     function addOperator(op) {
       playClickSound();
+      
+      if (isEditMode) {
+        insertAtCursor(' ' + op + ' ');
+        return;
+      }
       
       if (justCalculated) {
         justCalculated = false;
@@ -921,7 +922,10 @@
       lastCalculation = '';
       justCalculated = false;
       showEquals = false;
+      isEditMode = false;
+      editingExpression = false;
       updateDisplay();
+      updateCursorVisual();
     }
 
     // Setup buttons
@@ -940,22 +944,7 @@
     
     document.getElementById('delBtn').onclick = () => {
       if (isEditMode) {
-        const target = editingExpression ? expressionDisplay : resultDisplay;
-        const text = target.textContent;
-        
-        if (cursorPosition > 0) {
-          const newText = text.slice(0, cursorPosition - 1) + text.slice(cursorPosition);
-          target.textContent = newText || (editingExpression ? '' : '0');
-          
-          if (editingExpression) {
-            expression = newText;
-          } else {
-            result = removeFormatting(newText) || '0';
-          }
-          
-          cursorPosition--;
-          setCursorPosition(target, cursorPosition);
-        }
+        deleteAtCursor();
       } else {
         deleteLastChar();
       }
@@ -976,15 +965,10 @@
       delTimer = setTimeout(() => {
         delLongPress = true;
         
-        // Xác định đang focus vào đâu
-        const activeElement = document.activeElement;
-        if (activeElement === expressionDisplay) {
-          enableEditMode('expression');
-        } else if (activeElement === resultDisplay) {
-          enableEditMode('result');
-        } else {
-          // Nếu không focus, focus vào result
-          enableEditMode('result');
+        // Nếu chưa edit mode, bật lên
+        if (!isEditMode) {
+          // Mặc định edit result nếu có expression, ngược lại edit result
+          enableEditMode(expression ? 'result' : 'result');
         }
         
         // Di chuyển con trỏ sang trái liên tục
@@ -1006,14 +990,9 @@
       parenTimer = setTimeout(() => {
         parenLongPress = true;
         
-        // Xác định đang focus vào đâu
-        const activeElement = document.activeElement;
-        if (activeElement === expressionDisplay) {
-          enableEditMode('expression');
-        } else if (activeElement === resultDisplay) {
-          enableEditMode('result');
-        } else {
-          enableEditMode('result');
+        // Nếu chưa edit mode, bật lên
+        if (!isEditMode) {
+          enableEditMode(expression ? 'result' : 'result');
         }
         
         // Di chuyển con trỏ sang phải liên tục
