@@ -486,18 +486,14 @@
     </div>
   </div>
 
-  <div class="settings-modal" id="settingsModal">
+  <div class="settings-modal" id="settingsModal" style="display: none;">
     <div class="settings-content" onclick="event.stopPropagation()">
       <div class="settings-header">
-        <h3>⚙️ Cài đặt</h3>
+        <h3>⚙️ Nhấn giữ nút DEL</h3>
         <button class="close-settings" id="closeSettingsBtn">×</button>
       </div>
       <div class="settings-option">
-        <div class="settings-label">🔊 Âm thanh phím</div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="soundToggle" checked>
-          <span class="slider-toggle"></span>
-        </label>
+        <div class="settings-label">Di chuyển con trỏ đến vị trí cần sửa</div>
       </div>
     </div>
   </div>
@@ -509,16 +505,12 @@
     let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
     let justCalculated = false;
     let showEquals = false;
-    let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+    let soundEnabled = true;
 
     const resultDisplay = document.getElementById('result');
     const expressionDisplay = document.getElementById('expression');
     const historyList = document.getElementById('historyList');
     const historySection = document.getElementById('historySection');
-    const soundToggle = document.getElementById('soundToggle');
-    const settingsModal = document.getElementById('settingsModal');
-
-    soundToggle.checked = soundEnabled;
 
     let audioContext;
     function initAudio() {
@@ -528,8 +520,6 @@
     }
 
     function playClickSound() {
-      if (!soundEnabled) return;
-      
       initAudio();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -547,35 +537,19 @@
       oscillator.stop(audioContext.currentTime + 0.05);
     }
 
-    function toggleSound() {
-      soundEnabled = soundToggle.checked;
-      localStorage.setItem('soundEnabled', soundEnabled);
-      if (soundEnabled) {
-        playClickSound();
-      }
-    }
-
-    function openSettings() {
-      settingsModal.classList.add('show');
-    }
-
-    function closeSettings() {
-      settingsModal.classList.remove('show');
-    }
-
     function formatNumber(num) {
       const str = num.toString();
       if (str.includes('=')) {
         const parts = str.split('=');
-        return parts[0] + '=' + parts[1].trim().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return parts[0] + '=' + parts[1].trim().replace(/\B(?=(\d{3})+(?!\d))/g, "'");
       }
       const parts = str.split('.');
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "'");
       return parts.join('.');
     }
 
     function removeFormatting(num) {
-      return num.replace(/ /g, ',');
+      return num.replace(/'/g, '');
     }
 
     function flashDisplay() {
@@ -700,6 +674,15 @@
         result = result.slice(0, -1);
       }
       updateDisplay();
+    }
+
+    function enableEditMode() {
+      resultDisplay.focus();
+      const settingsModal = document.getElementById('settingsModal');
+      settingsModal.style.display = 'flex';
+      setTimeout(() => {
+        settingsModal.style.display = 'none';
+      }, 2000);
     }
 
     function addOperator(op) {
@@ -874,34 +857,45 @@
     document.getElementById('btnDot').onclick = () => appendNumber('.');
     
     document.getElementById('delBtn').onclick = deleteLastChar;
+    
+    // Long press DEL to enable edit mode
+    let delTimer;
+    let delLongPress = false;
+    document.getElementById('delBtn').addEventListener('touchstart', () => {
+      delLongPress = false;
+      delTimer = setTimeout(() => {
+        delLongPress = true;
+        enableEditMode();
+        navigator.vibrate && navigator.vibrate(50);
+      }, 500);
+    });
+    document.getElementById('delBtn').addEventListener('touchend', () => {
+      clearTimeout(delTimer);
+    });
+    document.getElementById('delBtn').addEventListener('mousedown', () => {
+      delLongPress = false;
+      delTimer = setTimeout(() => {
+        delLongPress = true;
+        enableEditMode();
+      }, 500);
+    });
+    document.getElementById('delBtn').addEventListener('mouseup', () => {
+      clearTimeout(delTimer);
+    });
     document.getElementById('openParenBtn').onclick = () => addParenthesis('(');
     document.getElementById('closeParenBtn').onclick = () => addParenthesis(')');
     document.getElementById('plusBtn').onclick = () => addOperator('+');
     document.getElementById('equalsBtn').onclick = calculate;
     
-    document.getElementById('closeSettingsBtn').onclick = closeSettings;
-    soundToggle.onchange = toggleSound;
-    settingsModal.onclick = (e) => {
-      if (e.target === settingsModal) closeSettings();
-    };
+    const closeBtn = document.getElementById('closeSettingsBtn');
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        document.getElementById('settingsModal').style.display = 'none';
+      };
+    }
 
-    // Long press AC for settings
-    let acTimer;
-    let acLongPress = false;
-    document.getElementById('acBtn').addEventListener('touchstart', () => {
-      acLongPress = false;
-      acTimer = setTimeout(() => {
-        acLongPress = true;
-        openSettings();
-      }, 500);
-    });
-    document.getElementById('acBtn').addEventListener('touchend', () => {
-      clearTimeout(acTimer);
-    });
-    document.getElementById('acBtn').onclick = (e) => {
-      if (!acLongPress) clearAll();
-      e.preventDefault();
-    };
+    // Long press AC (removed - now just clear)
+    document.getElementById('acBtn').onclick = clearAll;
 
     // Long press divide for sqrt
     let divTimer;
