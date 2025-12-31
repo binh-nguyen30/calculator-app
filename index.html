@@ -139,11 +139,11 @@
     }
 
     .expression {
-      font-size: 18px;
-      color: #666;
+      font-size: 16px;
+      color: #999;
       line-height: 1.4;
       word-wrap: break-word;
-      min-height: 25px;
+      min-height: 22px;
       position: relative;
       text-align: right;
       cursor: text;
@@ -154,6 +154,12 @@
       padding: 4px 8px;
       border-radius: 6px;
       border: 2px solid #ff9500;
+      color: #333;
+    }
+    
+    .expression.has-result {
+      font-size: 18px;
+      color: #666;
     }
 
     .result {
@@ -165,6 +171,7 @@
       position: relative;
       width: 100%;
       margin-top: 8px;
+      cursor: text;
     }
 
     .cursor-indicator {
@@ -372,6 +379,7 @@
   <script>
     // ===== BIẾN TOÀN CỤC =====
     let currentInput = '0';
+    let currentExpression = '';
     let calculatedResult = '';
     let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
     let justCalculated = false;
@@ -415,13 +423,13 @@
       if (!num) return '0';
       const str = num.toString();
       const parts = str.split('.');
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
       return parts.join('.');
     }
 
     function removeFormatting(num) {
       if (!num) return '0';
-      return num.toString().replace(/'/g, '');
+      return num.toString().replace(/ /g, '');
     }
 
     // ===== CON TRỎ =====
@@ -438,7 +446,7 @@
       expressionDisplay.classList.add('editing');
       
       // Tạo HTML với con trỏ
-      const text = currentInput;
+      const text = currentExpression || currentInput;
       const beforeCursor = text.substring(0, cursorPosition);
       const afterCursor = text.substring(cursorPosition);
       
@@ -450,7 +458,8 @@
 
     function enableEditMode() {
       isEditMode = true;
-      if (justCalculated) {
+      if (justCalculated && currentExpression) {
+        currentInput = currentExpression;
         cursorPosition = currentInput.length;
       } else {
         cursorPosition = currentInput.length;
@@ -492,13 +501,62 @@
     // ===== HIỂN THỊ =====
     function updateDisplay() {
       if (isEditMode) {
+        // Chế độ chỉnh sửa: chỉ hiển thị 1 dòng ở result
+        expressionDisplay.textContent = '';
+        expressionDisplay.classList.remove('has-result');
         resultDisplay.textContent = currentInput;
-      } else {
+      } else if (justCalculated) {
+        // Sau khi tính: phép tính ở trên, kết quả ở dưới
+        expressionDisplay.textContent = formatExpression(currentExpression);
+        expressionDisplay.classList.add('has-result');
         resultDisplay.textContent = formatNumber(currentInput);
+      } else {
+        // Khi nhập: chỉ hiển thị input ở dưới với format
+        expressionDisplay.textContent = '';
+        expressionDisplay.classList.remove('has-result');
+        resultDisplay.textContent = formatInputDisplay(currentInput);
       }
+    }
+    
+    // Format số trong phép tính đang nhập (format số lớn hơn 1000)
+    function formatInputDisplay(input) {
+      let result = input;
+      // Tìm tất cả các số trong chuỗi và format chúng
+      result = result.replace(/\d+/g, (match) => {
+        if (match.length > 3) {
+          return formatNumber(match);
+        }
+        return match;
+      });
+      return result;
+    }
+    
+    // Format toàn bộ biểu thức (cho expression sau khi tính)
+    function formatExpression(expr) {
+      let result = expr;
+      // Tìm tất cả các số trong biểu thức và format chúng
+      result = result.replace(/\d+/g, (match) => {
+        if (match.length > 3) {
+          return formatNumber(match);
+        }
+        return match;
+      });
+      return result;
     }
 
     resultDisplay.addEventListener('click', function() {
+      if (justCalculated && currentExpression) {
+        currentInput = currentExpression;
+        justCalculated = false;
+      }
+      enableEditMode();
+    });
+    
+    expressionDisplay.addEventListener('click', function() {
+      if (justCalculated && currentExpression) {
+        currentInput = currentExpression;
+        justCalculated = false;
+      }
       enableEditMode();
     });
 
@@ -533,6 +591,7 @@
     function useHistoryResult(index) {
       const historyItem = history[index];
       currentInput = historyItem.result;
+      currentExpression = '';
       justCalculated = false;
       isEditMode = false;
       updateDisplay();
@@ -559,6 +618,7 @@
       
       if (justCalculated) {
         currentInput = num;
+        currentExpression = '';
         justCalculated = false;
       } else {
         if (currentInput === '0' && num !== '.') {
@@ -595,6 +655,7 @@
       }
       
       justCalculated = false;
+      currentExpression = '';
       updateDisplay();
     }
 
@@ -641,6 +702,9 @@
       try {
         let expr = removeFormatting(currentInput);
         
+        // Lưu phép tính gốc
+        currentExpression = currentInput;
+        
         expr = expr.replace(/(\d+)%/g, '($1/100)');
         expr = expr.replace(/√\(([^)]+)\)/g, 'Math.sqrt($1)');
         expr = expr.replace(/×/g, '*');
@@ -651,6 +715,7 @@
         
         if (!isFinite(calculatedResult)) {
           currentInput = 'Lỗi';
+          currentExpression = '';
           setTimeout(clearAll, 1500);
           return;
         }
@@ -661,7 +726,7 @@
           resultStr = parseFloat(resultStr).toFixed(8).replace(/\.?0+$/, '');
         }
 
-        addToHistory(currentInput, resultStr);
+        addToHistory(currentExpression, resultStr);
 
         currentInput = resultStr;
         justCalculated = true;
@@ -670,6 +735,7 @@
         updateCursorVisual();
       } catch (error) {
         currentInput = 'Lỗi';
+        currentExpression = '';
         updateDisplay();
         setTimeout(clearAll, 1500);
       }
@@ -678,6 +744,7 @@
     function clearAll() {
       playClickSound();
       currentInput = '0';
+      currentExpression = '';
       justCalculated = false;
       isEditMode = false;
       updateDisplay();
