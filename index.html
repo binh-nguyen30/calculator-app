@@ -126,54 +126,66 @@
     .display {
       background: #f8f8f8;
       border-radius: 12px 12px 0 0;
-      padding: 20px 15px;
+      padding: 15px;
       color: #333;
       text-align: right;
       border: 1px solid #e0e0e0;
       border-bottom: none;
       flex-shrink: 0;
-      min-height: 100px;
+      min-height: 120px;
       display: flex;
-      align-items: center;
-      justify-content: flex-end;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .expression {
+      font-size: 18px;
+      color: #666;
+      line-height: 1.4;
+      word-wrap: break-word;
+      min-height: 25px;
+      position: relative;
+      text-align: right;
+      cursor: text;
+    }
+
+    .expression.editing {
+      background: rgba(255, 152, 0, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 2px solid #ff9500;
     }
 
     .result {
-      font-size: 36px;
+      font-size: 42px;
       font-weight: 300;
       line-height: 1.2;
       word-wrap: break-word;
       color: #1a1a1a;
-      cursor: text;
-      user-select: text;
-      -webkit-user-select: text;
       position: relative;
       width: 100%;
-    }
-
-    .result.editing {
-      background: rgba(255, 255, 255, 0.3);
-      padding: 4px;
-      border-radius: 4px;
+      margin-top: 8px;
     }
 
     .cursor-indicator {
       position: absolute;
-      width: 2px;
-      height: 80%;
+      width: 3px;
+      height: 100%;
       background: #ff9500;
-      animation: blink 1s infinite;
+      animation: blink 0.8s infinite;
       pointer-events: none;
       display: none;
+      top: 0;
+      transform: translateX(-1px);
     }
 
     .cursor-indicator.show {
-      display: block;
+      display: inline-block;
     }
 
     @keyframes blink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0; }
+      0%, 49% { opacity: 1; background: #ff9500; }
+      50%, 100% { opacity: 0.3; background: #ff9500; }
     }
 
     .keyboard-section {
@@ -319,9 +331,8 @@
     </div>
     
     <div class="display">
-      <div class="result" id="result">0
-        <span class="cursor-indicator" id="resCursor"></span>
-      </div>
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
     </div>
 
     <div class="keyboard-section">
@@ -361,6 +372,7 @@
   <script>
     // ===== BIẾN TOÀN CỤC =====
     let currentInput = '0';
+    let calculatedResult = '';
     let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
     let justCalculated = false;
     let cursorPosition = 0;
@@ -368,9 +380,9 @@
 
     // ===== DOM ELEMENTS =====
     const resultDisplay = document.getElementById('result');
+    const expressionDisplay = document.getElementById('expression');
     const historyList = document.getElementById('historyList');
     const historySection = document.getElementById('historySection');
-    const resCursor = document.getElementById('resCursor');
 
     // ===== ÂM THANH =====
     let audioContext;
@@ -414,32 +426,36 @@
 
     // ===== CON TRỎ =====
     function updateCursorVisual() {
+      // Xóa con trỏ cũ
+      const oldCursor = expressionDisplay.querySelector('.cursor-indicator');
+      if (oldCursor) oldCursor.remove();
+      
       if (!isEditMode) {
-        resCursor.classList.remove('show');
-        resultDisplay.classList.remove('editing');
+        expressionDisplay.classList.remove('editing');
         return;
       }
       
-      resCursor.classList.add('show');
-      resultDisplay.classList.add('editing');
+      expressionDisplay.classList.add('editing');
       
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      const style = window.getComputedStyle(resultDisplay);
-      context.font = style.fontSize + ' ' + style.fontFamily;
-      
+      // Tạo HTML với con trỏ
       const text = currentInput;
-      const textBeforeCursor = text.substring(0, cursorPosition);
-      const width = context.measureText(textBeforeCursor).width;
+      const beforeCursor = text.substring(0, cursorPosition);
+      const afterCursor = text.substring(cursorPosition);
       
-      resCursor.style.left = width + 'px';
+      expressionDisplay.innerHTML = 
+        beforeCursor + 
+        '<span class="cursor-indicator show">|</span>' + 
+        afterCursor;
     }
 
     function enableEditMode() {
       isEditMode = true;
-      cursorPosition = currentInput.length;
+      if (justCalculated) {
+        cursorPosition = currentInput.length;
+      } else {
+        cursorPosition = currentInput.length;
+      }
       updateCursorVisual();
-      updateDisplay();
     }
 
     function moveCursorLeft() {
