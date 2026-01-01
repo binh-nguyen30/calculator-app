@@ -738,9 +738,8 @@
         if (type === '(') {
           // Nếu trước ( là số hoặc ), thêm ×
           const beforeCursor = currentInput.substring(0, cursorPosition);
-          const lastChar = beforeCursor.trim().slice(-1);
           // Chỉ thêm × nếu trước đó là số hoặc )
-          if (beforeCursor && /[\d)]$/.test(beforeCursor)) {
+          if (beforeCursor && beforeCursor !== '0' && /[\d)]$/.test(beforeCursor)) {
             insertAtCursor(' × (');
             return;
           }
@@ -758,9 +757,11 @@
       
       // Không ở chế độ edit
       if (type === '(') {
-        // Chỉ thêm × nếu trước ( là số hoặc )
-        const lastChar = currentInput.trim().slice(-1);
-        if (currentInput && currentInput !== '0' && /[\d)]$/.test(currentInput)) {
+        // Xử lý trường hợp đầu tiên hoặc sau toán tử
+        if (currentInput === '0') {
+          currentInput = '(';
+        } else if (currentInput && /[\d)]$/.test(currentInput)) {
+          // Chỉ thêm × nếu trước ( là số hoặc )
           currentInput += ' × (';
         } else {
           currentInput += '(';
@@ -779,10 +780,10 @@
         if (op === '√') {
           // Kiểm tra nếu trước √ là số hoặc ), tự động thêm ×
           const beforeCursor = currentInput.substring(0, cursorPosition);
-          if (beforeCursor && /[\d)]$/.test(beforeCursor)) {
-            insertAtCursor(' × √(');
+          if (beforeCursor && beforeCursor !== '0' && /[\d)]$/.test(beforeCursor)) {
+            insertAtCursor(' × √');
           } else {
-            insertAtCursor('√(');
+            insertAtCursor('√');
           }
         } else if (op === '^') {
           insertAtCursor('^');
@@ -793,11 +794,14 @@
       }
       
       if (op === '√') {
-        // Chỉ thêm × nếu trước √ là số hoặc )
-        if (currentInput && currentInput !== '0' && /[\d)]$/.test(currentInput)) {
-          currentInput += ' × √(';
+        // Xử lý trường hợp đầu tiên hoặc sau toán tử
+        if (currentInput === '0') {
+          currentInput = '√';
+        } else if (currentInput && /[\d)]$/.test(currentInput)) {
+          // Chỉ thêm × nếu trước √ là số hoặc )
+          currentInput += ' × √';
         } else {
-          currentInput += '√(';
+          currentInput += '√';
         }
       } else if (op === '^') {
         currentInput += '^';
@@ -818,7 +822,9 @@
         currentExpression = currentInput;
         
         expr = expr.replace(/(\d+)%/g, '($1/100)');
-        expr = expr.replace(/√\(([^)]+)\)/g, 'Math.sqrt($1)');
+        // Xử lý căn bậc 2: √ theo sau là số hoặc biểu thức trong ngoặc
+        expr = expr.replace(/√\(([^)]+)\)/g, 'Math.sqrt($1)'); // √(...)
+        expr = expr.replace(/√(\d+\.?\d*)/g, 'Math.sqrt($1)'); // √123
         expr = expr.replace(/×/g, '*');
         expr = expr.replace(/÷/g, '/');
         expr = expr.replace(/\^/g, '**');
