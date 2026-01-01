@@ -37,12 +37,13 @@
     }
 
     .history-section {
-      flex: 0 0 auto;
+      flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 10px 15px 5px 15px;
+      padding: 10px 15px;
       padding-top: calc(10px + env(safe-area-inset-top));
-      max-height: 280px;
+      min-height: 0;
+      max-height: calc(100vh - 450px);
     }
 
     .history-list {
@@ -85,7 +86,7 @@
     }
 
     .history-result {
-      font-size: 20px;
+      font-size: 14px;
       color: #333;
       font-weight: 600;
       line-height: 1.2;
@@ -95,20 +96,16 @@
       background: transparent;
       color: #999;
       border: none;
-      padding: 2px 4px;
-      border-radius: 3px;
-      font-size: 10px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 11px;
       cursor: pointer;
       flex-shrink: 0;
       transition: all 0.15s ease;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      height: 20px;
     }
     
     .history-edit-btn:active {
-      background: rgba(0, 0, 0, 0.08);
+      background: rgba(0, 0, 0, 0.05);
       transform: scale(0.95);
     }
 
@@ -171,10 +168,10 @@
     }
     
     .result.editing {
-      background: rgba(200, 200, 200, 0.15);
+      background: rgba(255, 152, 0, 0.1);
       padding: 8px;
       border-radius: 8px;
-      border: 2px solid #999;
+      border: 2px solid #ff9500;
       font-size: 32px;
       min-height: 50px;
     }
@@ -183,7 +180,7 @@
       display: inline-block;
       width: 2px;
       height: 1.2em;
-      background: #666;
+      background: #ff9500;
       animation: blink 0.8s infinite;
       pointer-events: none;
       vertical-align: middle;
