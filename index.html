@@ -132,10 +132,10 @@
       border: 1px solid #e0e0e0;
       border-bottom: none;
       flex-shrink: 0;
-      min-height: 120px;
+      min-height: 100px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-end;
     }
 
     .expression {
@@ -143,23 +143,22 @@
       color: #999;
       line-height: 1.4;
       word-wrap: break-word;
-      min-height: 22px;
+      min-height: 0;
       position: relative;
       text-align: right;
       cursor: text;
+      display: none;
     }
 
     .expression.editing {
-      background: rgba(255, 152, 0, 0.1);
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 2px solid #ff9500;
-      color: #333;
+      display: none;
     }
     
     .expression.has-result {
+      display: block;
       font-size: 18px;
       color: #666;
+      margin-bottom: 8px;
     }
 
     .result {
@@ -170,8 +169,14 @@
       color: #1a1a1a;
       position: relative;
       width: 100%;
-      margin-top: 8px;
       cursor: text;
+    }
+    
+    .result.editing {
+      background: rgba(255, 152, 0, 0.1);
+      padding: 8px;
+      border-radius: 8px;
+      border: 2px solid #ff9500;
     }
 
     .cursor-indicator {
@@ -435,22 +440,22 @@
     // ===== CON TRỎ =====
     function updateCursorVisual() {
       // Xóa con trỏ cũ
-      const oldCursor = expressionDisplay.querySelector('.cursor-indicator');
+      const oldCursor = resultDisplay.querySelector('.cursor-indicator');
       if (oldCursor) oldCursor.remove();
       
       if (!isEditMode) {
-        expressionDisplay.classList.remove('editing');
+        resultDisplay.classList.remove('editing');
         return;
       }
       
-      expressionDisplay.classList.add('editing');
+      resultDisplay.classList.add('editing');
       
       // Tạo HTML với con trỏ
-      const text = currentExpression || currentInput;
+      const text = currentInput;
       const beforeCursor = text.substring(0, cursorPosition);
       const afterCursor = text.substring(cursorPosition);
       
-      expressionDisplay.innerHTML = 
+      resultDisplay.innerHTML = 
         beforeCursor + 
         '<span class="cursor-indicator show">|</span>' + 
         afterCursor;
@@ -460,10 +465,11 @@
       isEditMode = true;
       if (justCalculated && currentExpression) {
         currentInput = currentExpression;
-        cursorPosition = currentInput.length;
-      } else {
-        cursorPosition = currentInput.length;
+        justCalculated = false;
+        currentExpression = '';
       }
+      cursorPosition = currentInput.length;
+      updateDisplay();
       updateCursorVisual();
     }
 
@@ -501,18 +507,19 @@
     // ===== HIỂN THỊ =====
     function updateDisplay() {
       if (isEditMode) {
-        // Chế độ chỉnh sửa: chỉ hiển thị 1 dòng ở result
-        expressionDisplay.textContent = '';
+        // Chế độ chỉnh sửa: CHỈ hiển thị 1 dòng ở result, ẨN expression
+        expressionDisplay.style.display = 'none';
         expressionDisplay.classList.remove('has-result');
         resultDisplay.textContent = currentInput;
       } else if (justCalculated) {
         // Sau khi tính: phép tính ở trên, kết quả ở dưới
+        expressionDisplay.style.display = 'block';
         expressionDisplay.textContent = formatExpression(currentExpression);
         expressionDisplay.classList.add('has-result');
         resultDisplay.textContent = formatNumber(currentInput);
       } else {
         // Khi nhập: chỉ hiển thị input ở dưới với format
-        expressionDisplay.textContent = '';
+        expressionDisplay.style.display = 'none';
         expressionDisplay.classList.remove('has-result');
         resultDisplay.textContent = formatInputDisplay(currentInput);
       }
@@ -531,7 +538,7 @@
       return result;
     }
     
-    // Format toàn bộ biểu thức (cho expression sau khi tính)
+    // Format toàn bộ biểu thức (cho expression sau khi tính VÀ trong lịch sử)
     function formatExpression(expr) {
       let result = expr;
       // Tìm tất cả các số trong biểu thức và format chúng
@@ -548,6 +555,7 @@
       if (justCalculated && currentExpression) {
         currentInput = currentExpression;
         justCalculated = false;
+        currentExpression = '';
       }
       enableEditMode();
     });
@@ -556,6 +564,7 @@
       if (justCalculated && currentExpression) {
         currentInput = currentExpression;
         justCalculated = false;
+        currentExpression = '';
       }
       enableEditMode();
     });
@@ -570,7 +579,7 @@
       historyList.innerHTML = history.map((item, index) => `
         <div class="history-item-wrapper" id="history-${index}">
           <div class="history-item" onclick="useHistoryResult(${index})">
-            <div class="history-expression">${item.expression}</div>
+            <div class="history-expression">${formatExpression(item.expression)}</div>
             <div class="history-result">= ${formatNumber(item.result)}</div>
           </div>
         </div>
@@ -752,14 +761,7 @@
     }
 
     // ===== LONG PRESS =====
-    document.getElementById('delBtn').onclick = () => {
-      if (isEditMode) {
-        deleteAtCursor();
-      } else {
-        deleteLastChar();
-      }
-    };
-    
+    // Nhấn giữ ⌫ để xóa nhanh
     let delTimer, delInterval;
     let delLongPress = false;
     
@@ -767,17 +769,29 @@
       delLongPress = false;
       delTimer = setTimeout(() => {
         delLongPress = true;
-        if (!isEditMode) enableEditMode();
+        navigator.vibrate && navigator.vibrate(20);
         delInterval = setInterval(() => {
-          moveCursorLeft();
-          navigator.vibrate && navigator.vibrate(10);
-        }, 400);
+          if (isEditMode) {
+            deleteAtCursor();
+          } else {
+            deleteLastChar();
+          }
+          navigator.vibrate && navigator.vibrate(5);
+        }, 100);
       }, 500);
     }
     
     function stopDelLongPress() {
       clearTimeout(delTimer);
       clearInterval(delInterval);
+      if (!delLongPress) {
+        // Nhấn ngắn: xóa 1 ký tự
+        if (isEditMode) {
+          deleteAtCursor();
+        } else {
+          deleteLastChar();
+        }
+      }
       delLongPress = false;
     }
     
@@ -786,34 +800,6 @@
     document.getElementById('delBtn').addEventListener('mousedown', startDelLongPress);
     document.getElementById('delBtn').addEventListener('mouseup', stopDelLongPress);
     document.getElementById('delBtn').addEventListener('touchmove', stopDelLongPress);
-    
-    let parenTimer, parenInterval;
-    let parenLongPress = false;
-    
-    function startParenLongPress() {
-      parenLongPress = false;
-      parenTimer = setTimeout(() => {
-        parenLongPress = true;
-        if (!isEditMode) enableEditMode();
-        parenInterval = setInterval(() => {
-          moveCursorRight();
-          navigator.vibrate && navigator.vibrate(10);
-        }, 400);
-      }, 500);
-    }
-    
-    function stopParenLongPress() {
-      clearTimeout(parenTimer);
-      clearInterval(parenInterval);
-      parenLongPress = false;
-    }
-    
-    const openParenBtn = document.getElementById('openParenBtn');
-    openParenBtn.addEventListener('touchstart', startParenLongPress);
-    openParenBtn.addEventListener('touchend', stopParenLongPress);
-    openParenBtn.addEventListener('mousedown', startParenLongPress);
-    openParenBtn.addEventListener('mouseup', stopParenLongPress);
-    openParenBtn.addEventListener('touchmove', stopParenLongPress);
 
     let divTimer, divInterval, divLongPress = false;
     document.getElementById('divideBtn').addEventListener('touchstart', () => {
@@ -871,7 +857,7 @@
     document.getElementById('btn000').onclick = () => appendNumber('000');
     document.getElementById('btnDot').onclick = () => appendNumber('.');
     
-    document.getElementById('openParenBtn').onclick = () => { if (!parenLongPress) addParenthesis('('); };
+    document.getElementById('openParenBtn').onclick = () => addParenthesis('(');
     document.getElementById('closeParenBtn').onclick = () => addParenthesis(')');
     document.getElementById('plusBtn').onclick = () => addOperator('+');
     document.getElementById('equalsBtn').onclick = calculate;
