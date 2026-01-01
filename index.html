@@ -92,19 +92,14 @@
     }
     
     .history-edit-btn {
-      background: transparent;
-      color: #999;
-      border: none;
-      padding: 2px 4px;
-      border-radius: 3px;
-      font-size: 10px;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: all 0.15s ease;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      height: 14px;
+     width: 40px;          /* cố định chiều rộng nút */
+     height: 32px;         /* cố định chiều cao nút → không làm dòng cao hơn */
+     padding: 0;
+     font-size: 18px;      /* icon ✏️ to hơn */
+     display: flex;
+	 align-items: center;
+	 justify-content: center;
+	 border-radius: 4px;   /* trước có thể là 6px → giờ sẽ vuông hơn */															   
     }
     
     .history-edit-btn:active {
@@ -648,17 +643,24 @@
     function useHistoryResult(index) {
       const historyItem = history[index];
       
-      // Nếu đang nhập phép tính (không phải = 0 và chưa tính), thêm kết quả vào phép tính
+      // Nếu đang nhập phép tính (không phải '0' và chưa tính xong)
       if (currentInput !== '0' && !justCalculated) {
-        // Kiểm tra nếu cuối cùng là số hoặc ), tự động thêm toán tử
-        if (/[\d)]$/.test(currentInput)) {
+        // Kiểm tra ký tự cuối cùng của phép tính
+        const lastChar = currentInput.trim().slice(-1);
+        
+        // Nếu cuối là toán tử (+, -, ×, ÷, ^) hoặc (
+        if (['+', '-', '×', '÷', '^', '(', '√'].includes(lastChar)) {
+          // Chỉ cần thêm số vào
+          currentInput += historyItem.result;
+        } else if (/[\d)]$/.test(currentInput)) {
+          // Nếu cuối là số hoặc ), tự động thêm toán tử +
           currentInput += ' + ' + historyItem.result;
         } else {
-          // Nếu cuối cùng là toán tử, chỉ cần thêm số
+          // Các trường hợp khác
           currentInput += historyItem.result;
         }
       } else {
-        // Nếu chưa nhập gì hoặc vừa tính xong, thay thế bằng kết quả
+        // Nếu là '0' hoặc vừa tính xong, thay thế
         currentInput = historyItem.result;
       }
       
