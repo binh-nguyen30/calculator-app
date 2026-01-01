@@ -96,10 +96,19 @@
       border-radius: 8px;
       cursor: pointer;
       border: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
     }
 
     .history-item:active {
       background: #e8e8e8;
+    }
+    
+    .history-content {
+      flex: 1;
+      min-width: 0;
     }
 
     .history-expression {
@@ -114,6 +123,23 @@
       color: #333;
       font-weight: 600;
       line-height: 1.2;
+    }
+    
+    .history-edit-btn {
+      background: rgba(255, 152, 0, 0.15);
+      color: #ff9500;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+    
+    .history-edit-btn:active {
+      background: rgba(255, 152, 0, 0.3);
+      transform: scale(0.95);
     }
 
     .no-history {
@@ -631,9 +657,12 @@
 
       historyList.innerHTML = history.map((item, index) => `
         <div class="history-item-wrapper" id="history-${index}">
-          <div class="history-item" onclick="useHistoryResult(${index})">
-            <div class="history-expression">${formatExpression(item.expression)}</div>
-            <div class="history-result">= ${formatNumber(item.result)}</div>
+          <div class="history-item">
+            <div class="history-content" onclick="useHistoryResult(${index})">
+              <div class="history-expression">${formatExpression(item.expression)}</div>
+              <div class="history-result">= ${formatNumber(item.result)}</div>
+            </div>
+            <button class="history-edit-btn" onclick="editHistoryExpression(${index}); event.stopPropagation();">✏️</button>
           </div>
         </div>
       `).join('');
@@ -660,6 +689,15 @@
       updateCursorVisual();
       playClickSound();
     }
+    
+    function editHistoryExpression(index) {
+      const historyItem = history[index];
+      currentInput = historyItem.expression;
+      currentExpression = '';
+      justCalculated = false;
+      enableEditMode();
+      playClickSound();
+    }
 
     function clearHistory() {
       if (confirm('Xóa toàn bộ lịch sử?')) {
@@ -674,6 +712,19 @@
       playClickSound();
       
       if (isEditMode) {
+        // Kiểm tra dấu . trong số hiện tại
+        if (num === '.') {
+          const beforeCursor = currentInput.substring(0, cursorPosition);
+          const afterCursor = currentInput.substring(cursorPosition);
+          
+          // Tìm số hiện tại đang nhập (trước con trỏ)
+          const currentNumberMatch = beforeCursor.match(/[\d.]+$/);
+          const currentNumber = currentNumberMatch ? currentNumberMatch[0] : '';
+          
+          // Nếu số hiện tại đã có dấu . thì không cho thêm
+          if (currentNumber.includes('.')) return;
+        }
+        
         // Kiểm tra nếu trước số là ), tự động thêm ×
         const beforeCursor = currentInput.substring(0, cursorPosition);
         if (beforeCursor && /\)$/.test(beforeCursor)) {
@@ -689,13 +740,22 @@
         currentExpression = '';
         justCalculated = false;
       } else {
+        // Kiểm tra dấu . trong số hiện tại đang nhập
+        if (num === '.') {
+          // Tìm số cuối cùng trong phép tính
+          const lastNumberMatch = currentInput.match(/[\d.]+$/);
+          const lastNumber = lastNumberMatch ? lastNumberMatch[0] : '';
+          
+          // Nếu số cuối cùng đã có dấu . thì không cho thêm
+          if (lastNumber.includes('.')) return;
+        }
+        
         // Kiểm tra nếu trước số là ), tự động thêm ×
         if (currentInput && currentInput !== '0' && /\)$/.test(currentInput)) {
           currentInput += ' × ' + num;
         } else if (currentInput === '0' && num !== '.') {
           currentInput = num;
         } else {
-          if (num === '.' && currentInput.includes('.')) return;
           currentInput += num;
         }
       }
