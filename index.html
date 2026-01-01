@@ -690,7 +690,7 @@
         justCalculated = false;
       } else {
         // Kiểm tra nếu trước số là ), tự động thêm ×
-        if (currentInput && /\)$/.test(currentInput)) {
+        if (currentInput && currentInput !== '0' && /\)$/.test(currentInput)) {
           currentInput += ' × ' + num;
         } else if (currentInput === '0' && num !== '.') {
           currentInput = num;
@@ -738,6 +738,8 @@
         if (type === '(') {
           // Nếu trước ( là số hoặc ), thêm ×
           const beforeCursor = currentInput.substring(0, cursorPosition);
+          const lastChar = beforeCursor.trim().slice(-1);
+          // Chỉ thêm × nếu trước đó là số hoặc )
           if (beforeCursor && /[\d)]$/.test(beforeCursor)) {
             insertAtCursor(' × (');
             return;
@@ -756,15 +758,15 @@
       
       // Không ở chế độ edit
       if (type === '(') {
-        // Nếu trước ( là số hoặc ), thêm ×
-        if (currentInput && /[\d)]$/.test(currentInput)) {
+        // Chỉ thêm × nếu trước ( là số hoặc )
+        const lastChar = currentInput.trim().slice(-1);
+        if (currentInput && currentInput !== '0' && /[\d)]$/.test(currentInput)) {
           currentInput += ' × (';
         } else {
           currentInput += '(';
         }
       } else if (type === ')') {
         currentInput += ')';
-        // Nếu sau ) người dùng sẽ nhập số, sẽ tự thêm × khi họ nhập
       }
       
       updateDisplay();
@@ -775,7 +777,13 @@
       
       if (isEditMode) {
         if (op === '√') {
-          insertAtCursor('√(');
+          // Kiểm tra nếu trước √ là số hoặc ), tự động thêm ×
+          const beforeCursor = currentInput.substring(0, cursorPosition);
+          if (beforeCursor && /[\d)]$/.test(beforeCursor)) {
+            insertAtCursor(' × √(');
+          } else {
+            insertAtCursor('√(');
+          }
         } else if (op === '^') {
           insertAtCursor('^');
         } else if (op === '%') {
@@ -785,7 +793,12 @@
       }
       
       if (op === '√') {
-        currentInput += '√(';
+        // Chỉ thêm × nếu trước √ là số hoặc )
+        if (currentInput && currentInput !== '0' && /[\d)]$/.test(currentInput)) {
+          currentInput += ' × √(';
+        } else {
+          currentInput += '√(';
+        }
       } else if (op === '^') {
         currentInput += '^';
       } else if (op === '%') {
