@@ -37,13 +37,12 @@
     }
 
     .history-section {
-      flex: 1;
+      flex: 0 0 auto;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 10px 15px;
+      padding: 10px 15px 5px 15px;
       padding-top: calc(10px + env(safe-area-inset-top));
-      min-height: 0;
-      max-height: calc(100vh - 450px);
+      max-height: 280px;
     }
 
     .history-list {
@@ -93,19 +92,23 @@
     }
     
     .history-edit-btn {
-      background: rgba(255, 152, 0, 0.15);
-      color: #ff9500;
+      background: transparent;
+      color: #999;
       border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 14px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 10px;
       cursor: pointer;
       flex-shrink: 0;
       transition: all 0.15s ease;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      height: 14px;
     }
     
     .history-edit-btn:active {
-      background: rgba(255, 152, 0, 0.3);
+      background: rgba(0, 0, 0, 0.08);
       transform: scale(0.95);
     }
 
@@ -168,10 +171,10 @@
     }
     
     .result.editing {
-      background: rgba(255, 152, 0, 0.1);
+      background: rgba(200, 200, 200, 0.15);
       padding: 8px;
       border-radius: 8px;
-      border: 2px solid #ff9500;
+      border: 2px solid #999;
       font-size: 32px;
       min-height: 50px;
     }
@@ -180,7 +183,7 @@
       display: inline-block;
       width: 2px;
       height: 1.2em;
-      background: #ff9500;
+      background: #666;
       animation: blink 0.8s infinite;
       pointer-events: none;
       vertical-align: middle;
@@ -352,10 +355,6 @@
 <body>
   <div class="calculator">
     <div class="history-section" id="historySection">
-      <div class="history-header">
-        <div class="history-title">📜 Lịch sử</div>
-        <button class="clear-history" onclick="clearHistory()">Xóa</button>
-      </div>
       <div class="history-list" id="historyList">
         <div class="no-history">Chưa có lịch sử</div>
       </div>
@@ -667,11 +666,7 @@
     }
 
     function clearHistory() {
-      if (confirm('Xóa toàn bộ lịch sử?')) {
-        history = [];
-        localStorage.removeItem('calcHistory');
-        updateHistoryDisplay();
-      }
+      // Bỏ chức năng xóa lịch sử
     }
 
     // ===== NHẬP SỐ =====
