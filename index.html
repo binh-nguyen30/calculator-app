@@ -166,10 +166,12 @@
       font-weight: 300;
       line-height: 1.2;
       word-wrap: break-word;
+      word-break: break-all;
       color: #1a1a1a;
       position: relative;
       width: 100%;
       cursor: text;
+      white-space: pre-wrap;
     }
     
     .result.editing {
@@ -177,18 +179,19 @@
       padding: 8px;
       border-radius: 8px;
       border: 2px solid #ff9500;
+      font-size: 32px;
+      min-height: 50px;
     }
 
     .cursor-indicator {
-      position: absolute;
-      width: 3px;
-      height: 100%;
+      display: inline-block;
+      width: 2px;
+      height: 1.2em;
       background: #ff9500;
       animation: blink 0.8s infinite;
       pointer-events: none;
-      display: none;
-      top: 0;
-      transform: translateX(-1px);
+      vertical-align: middle;
+      margin: 0 1px;
     }
 
     .cursor-indicator.show {
@@ -428,37 +431,53 @@
       if (!num) return '0';
       const str = num.toString();
       const parts = str.split('.');
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
       return parts.join('.');
     }
 
     function removeFormatting(num) {
       if (!num) return '0';
-      return num.toString().replace(/ /g, '');
+      return num.toString().replace(/,/g, '');
     }
 
     // ===== CON TRỎ =====
     function updateCursorVisual() {
-      // Xóa con trỏ cũ
-      const oldCursor = resultDisplay.querySelector('.cursor-indicator');
-      if (oldCursor) oldCursor.remove();
-      
       if (!isEditMode) {
         resultDisplay.classList.remove('editing');
+        resultDisplay.textContent = formatNumber(currentInput);
         return;
       }
       
       resultDisplay.classList.add('editing');
       
-      // Tạo HTML với con trỏ
+      // Tạo text node thay vì innerHTML để tránh lỗi con trỏ
       const text = currentInput;
       const beforeCursor = text.substring(0, cursorPosition);
       const afterCursor = text.substring(cursorPosition);
       
-      resultDisplay.innerHTML = 
-        beforeCursor + 
-        '<span class="cursor-indicator show">|</span>' + 
-        afterCursor;
+      // Xóa nội dung cũ
+      resultDisplay.innerHTML = '';
+      
+      // Thêm text trước con trỏ
+      if (beforeCursor) {
+        resultDisplay.appendChild(document.createTextNode(beforeCursor));
+      }
+      
+      // Thêm con trỏ
+      const cursor = document.createElement('span');
+      cursor.className = 'cursor-indicator show';
+      cursor.textContent = '|';
+      resultDisplay.appendChild(cursor);
+      
+      // Thêm text sau con trỏ
+      if (afterCursor) {
+        resultDisplay.appendChild(document.createTextNode(afterCursor));
+      }
+      
+      // Scroll đến con trỏ nếu cần
+      setTimeout(() => {
+        cursor.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }, 0);
     }
 
     function enableEditMode() {
