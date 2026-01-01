@@ -37,13 +37,12 @@
     }
 
     .history-section {
-      flex: 1;
+      flex: 0 0 auto;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 6px 8px;
+      padding: 10px 15px 5px 15px;
       padding-top: calc(10px + env(safe-area-inset-top));
-      min-height: 0;
-      max-height: calc(100vh - 450px);
+      max-height: 280px;
     }
 
     .history-list {
@@ -98,18 +97,18 @@
       border: none;
       padding: 2px 4px;
       border-radius: 3px;
-      font-size: 12px;
+      font-size: 10px;
       cursor: pointer;
       flex-shrink: 0;
       transition: all 0.15s ease;
-					 
-					
-						  
-				   
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      height: 14px;
     }
     
     .history-edit-btn:active {
-      background: rgba(0, 0, 0, 0.05);
+      background: rgba(0, 0, 0, 0.08);
       transform: scale(0.95);
     }
 
@@ -648,7 +647,21 @@
 
     function useHistoryResult(index) {
       const historyItem = history[index];
-      currentInput = historyItem.result;
+      
+      // Nếu đang nhập phép tính (không phải = 0 và chưa tính), thêm kết quả vào phép tính
+      if (currentInput !== '0' && !justCalculated) {
+        // Kiểm tra nếu cuối cùng là số hoặc ), tự động thêm toán tử
+        if (/[\d)]$/.test(currentInput)) {
+          currentInput += ' + ' + historyItem.result;
+        } else {
+          // Nếu cuối cùng là toán tử, chỉ cần thêm số
+          currentInput += historyItem.result;
+        }
+      } else {
+        // Nếu chưa nhập gì hoặc vừa tính xong, thay thế bằng kết quả
+        currentInput = historyItem.result;
+      }
+      
       currentExpression = '';
       justCalculated = false;
       isEditMode = false;
