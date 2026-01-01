@@ -199,8 +199,8 @@
     }
 
     @keyframes blink {
-      0%, 49% { opacity: 1; background: #ff9500; }
-      50%, 100% { opacity: 0.3; background: #ff9500; }
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.3; }
     }
 
     .keyboard-section {
@@ -742,9 +742,10 @@
         const calculatedResult = eval(expr);
         
         if (!isFinite(calculatedResult)) {
-          currentInput = 'Lỗi';
+          // Lỗi: giữ nguyên phép tính để sửa
+          alert('Lỗi: Phép tính không hợp lệ');
           currentExpression = '';
-          setTimeout(clearAll, 1500);
+          enableEditMode();
           return;
         }
 
@@ -762,10 +763,10 @@
         updateDisplay();
         updateCursorVisual();
       } catch (error) {
-        currentInput = 'Lỗi';
+        // Lỗi: giữ nguyên phép tính để sửa
+        alert('Lỗi: Cú pháp không đúng');
         currentExpression = '';
-        updateDisplay();
-        setTimeout(clearAll, 1500);
+        enableEditMode();
       }
     }
 
@@ -819,6 +820,60 @@
     document.getElementById('delBtn').addEventListener('mousedown', startDelLongPress);
     document.getElementById('delBtn').addEventListener('mouseup', stopDelLongPress);
     document.getElementById('delBtn').addEventListener('touchmove', stopDelLongPress);
+    
+    // Nhấn giữ ◄ để di chuyển con trỏ nhanh sang trái
+    let leftTimer, leftInterval, leftLongPress = false;
+    
+    function startLeftLongPress() {
+      leftLongPress = false;
+      leftTimer = setTimeout(() => {
+        leftLongPress = true;
+        navigator.vibrate && navigator.vibrate(20);
+        leftInterval = setInterval(() => {
+          moveCursorLeft();
+          navigator.vibrate && navigator.vibrate(5);
+        }, 100);
+      }, 500);
+    }
+    
+    function stopLeftLongPress() {
+      clearTimeout(leftTimer);
+      clearInterval(leftInterval);
+      leftLongPress = false;
+    }
+    
+    document.getElementById('leftArrowBtn').addEventListener('touchstart', startLeftLongPress);
+    document.getElementById('leftArrowBtn').addEventListener('touchend', stopLeftLongPress);
+    document.getElementById('leftArrowBtn').addEventListener('mousedown', startLeftLongPress);
+    document.getElementById('leftArrowBtn').addEventListener('mouseup', stopLeftLongPress);
+    document.getElementById('leftArrowBtn').addEventListener('touchmove', stopLeftLongPress);
+    
+    // Nhấn giữ ► để di chuyển con trỏ nhanh sang phải
+    let rightTimer, rightInterval, rightLongPress = false;
+    
+    function startRightLongPress() {
+      rightLongPress = false;
+      rightTimer = setTimeout(() => {
+        rightLongPress = true;
+        navigator.vibrate && navigator.vibrate(20);
+        rightInterval = setInterval(() => {
+          moveCursorRight();
+          navigator.vibrate && navigator.vibrate(5);
+        }, 100);
+      }, 500);
+    }
+    
+    function stopRightLongPress() {
+      clearTimeout(rightTimer);
+      clearInterval(rightInterval);
+      rightLongPress = false;
+    }
+    
+    document.getElementById('rightArrowBtn').addEventListener('touchstart', startRightLongPress);
+    document.getElementById('rightArrowBtn').addEventListener('touchend', stopRightLongPress);
+    document.getElementById('rightArrowBtn').addEventListener('mousedown', startRightLongPress);
+    document.getElementById('rightArrowBtn').addEventListener('mouseup', stopRightLongPress);
+    document.getElementById('rightArrowBtn').addEventListener('touchmove', stopRightLongPress);
 
     let divTimer, divInterval, divLongPress = false;
     document.getElementById('divideBtn').addEventListener('touchstart', () => {
@@ -884,20 +939,24 @@
     
     // Nút mũi tên trái - di chuyển con trỏ
     document.getElementById('leftArrowBtn').onclick = () => {
-      playClickSound();
-      if (!isEditMode) {
-        enableEditMode();
+      if (!leftLongPress) {
+        playClickSound();
+        if (!isEditMode) {
+          enableEditMode();
+        }
+        moveCursorLeft();
       }
-      moveCursorLeft();
     };
     
     // Nút mũi tên phải - di chuyển con trỏ
     document.getElementById('rightArrowBtn').onclick = () => {
-      playClickSound();
-      if (!isEditMode) {
-        enableEditMode();
+      if (!rightLongPress) {
+        playClickSound();
+        if (!isEditMode) {
+          enableEditMode();
+        }
+        moveCursorRight();
       }
-      moveCursorRight();
     };
 
     // ===== KHỞI TẠO =====
