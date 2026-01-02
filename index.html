@@ -3,506 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Máy Tính">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%234285f4'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial'>🧮</text></svg>">
   <title>Máy Tính</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Arial, sans-serif;
-      background: #ffffff;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    .calculator {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      max-width: 500px;
-      width: 100%;
-      margin: 0 auto;
-    }
-
-    .history-section {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding: 10px 15px;
-      padding-top: calc(10px + env(safe-area-inset-top));
-      min-height: 0;
-      max-height: calc(100vh - 450px);
-    }
-
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .history-item-wrapper {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .history-item {
-      background: #f5f5f5;
-      padding: 6px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      border: 1px solid #e0e0e0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .history-item:active {
-      background: #e8e8e8;
-    }
-    
-    .history-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .history-expression {
-      font-size: 11px;
-      color: rgba(0, 0, 0, 0.5);
-      margin-bottom: 2px;
-      line-height: 1.2;
-    }
-
-    .history-result {
-      font-size: 14px;
-      color: #333;
-      font-weight: 600;
-      line-height: 1.2;
-    }
-    
-	.history-edit-btn {
-     width: 40px;          /* cố định chiều rộng nút */
-     height: 32px;         /* cố định chiều cao nút → không làm dòng cao hơn */
-     padding: 0;
-     font-size: 18px;      /* icon ✏️ to hơn */
-     display: flex;
-	 align-items: center;
-	 justify-content: center;
-	 border-radius: 4px;   /* trước có thể là 6px → giờ sẽ vuông hơn */
-}
-
-    
-    .history-edit-btn:active {
-      background: rgba(0, 0, 0, 0.05);
-      transform: scale(0.95);
-    }
-
-    .no-history {
-      text-align: center;
-      color: rgba(0, 0, 0, 0.3);
-      font-size: 11px;
-      padding: 15px;
-    }
-
-    .display {
-      background: #f8f8f8;
-      border-radius: 12px 12px 0 0;
-      padding: 15px;
-      color: #333;
-      text-align: right;
-      border: 1px solid #e0e0e0;
-      border-bottom: none;
-      flex-shrink: 0;
-      min-height: 100px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
-
-    .expression {
-      font-size: 16px;
-      color: #999;
-      line-height: 1.4;
-      word-wrap: break-word;
-      min-height: 0;
-      position: relative;
-      text-align: right;
-      cursor: text;
-      display: none;
-    }
-
-    .expression.editing {
-      display: none;
-    }
-    
-    .expression.has-result {
-      display: block;
-      font-size: 18px;
-      color: #666;
-      margin-bottom: 8px;
-    }
-
-    .result {
-      font-size: 42px;
-      font-weight: 300;
-      line-height: 1.2;
-      word-wrap: break-word;
-      word-break: break-all;
-      color: #1a1a1a;
-      position: relative;
-      width: 100%;
-      cursor: text;
-      white-space: pre-wrap;
-    }
-    
-    .result.editing {
-      background: rgba(255, 152, 0, 0.1);
-      padding: 8px;
-      border-radius: 8px;
-      border: 2px solid #ff9500;
-      font-size: 32px;
-      min-height: 50px;
-    }
-
-    .cursor-indicator {
-      display: inline-block;
-      width: 2px;
-      height: 1.2em;
-      background: #ff9500;
-      animation: blink 0.8s infinite;
-      pointer-events: none;
-      vertical-align: middle;
-      margin: 0 1px;
-    }
-
-    .cursor-indicator.show {
-      display: inline-block;
-    }
-
-    .error-toast {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(255, 59, 48, 0.95);
-      color: white;
-      padding: 15px 30px;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      animation: fadeInOut 1.5s ease-in-out;
-    }
-
-    @keyframes fadeInOut {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-      15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-    }
-
-    .keyboard-section {
-      padding: 0 15px 15px 15px;
-      padding-bottom: calc(15px + env(safe-area-inset-bottom));
-      flex-shrink: 0;
-      background: white;
-    }
-
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-
-    button {
-      border: none;
-      border-radius: 16px;
-      font-size: 24px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      position: relative;
-      overflow: visible;
-      height: 65px;
-      background: #e8e8e8;
-      color: #333;
-    }
-
-    button:active {
-      transform: scale(0.92);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-      font-weight: 700;
-    }
-
-    .number {
-      background: #e8e8e8;
-      color: #333;
-    }
-
-    .number:active {
-      background: #d8d8d8;
-    }
-
-    .operator {
-      background: #ff9500;
-      color: white;
-      position: relative;
-    }
-
-    .operator:active {
-      background: #ff8000;
-    }
-
-    .operator-badge {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      font-size: 13px;
-      opacity: 0.7;
-      font-weight: 600;
-    }
-
-    .function {
-      background: #e8e8e8;
-      color: #333;
-    }
-
-    .function:active {
-      background: #d8d8d8;
-    }
-
-    .equals {
-      background: #34c759;
-      color: white;
-    }
-
-    .equals:active {
-      background: #2fb350;
-    }
-
-    .delete {
-      background: #e8e8e8;
-      color: #ff6b6b;
-      font-size: 20px;
-    }
-
-    .delete:active {
-      background: #d8d8d8;
-    }
-
-    .history-section::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    .history-section::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .history-section::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 2px;
-    }
-
-    @keyframes blink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0.3; }
-    }
-
-    @media (max-width: 400px) {
-      .result {
-        font-size: 32px;
-      }
-      
-      button {
-        font-size: 22px;
-        height: 60px;
-      }
-      
-      .operator-badge {
-        font-size: 12px;
-      }
-    }
-
-    @media (max-height: 700px) {
-      button {
-        height: 55px;
-        font-size: 22px;
-      }
-      
-      .result {
-        font-size: 32px;
-      }
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, sans-serif; background: #fff; height: 100vh; overflow: hidden; user-select: none; }
+    .calculator { height: 100vh; display: flex; flex-direction: column; max-width: 500px; margin: 0 auto; }
+    .history-section { flex: 1; overflow-y: auto; padding: 10px 15px; max-height: calc(100vh - 450px); }
+    .history-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; margin-bottom: 8px; position: sticky; top: 0; background: white; z-index: 10; border-bottom: 1px solid #e0e0e0; }
+    .history-title { font-size: 13px; font-weight: 600; color: #666; }
+    .clear-history-btn { background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 4px 12px; font-size: 11px; font-weight: 600; cursor: pointer; }
+    .clear-history-btn:active { background: #d32f2f; transform: scale(0.95); }
+    .history-list { display: flex; flex-direction: column; gap: 4px; }
+    .history-item { background: #f5f5f5; padding: 6px 10px; border-radius: 8px; cursor: pointer; border: 1px solid #e0e0e0; display: flex; align-items: center; gap: 8px; }
+    .history-item:active { background: #e8e8e8; }
+    .history-content { flex: 1; min-width: 0; }
+    .history-expression { font-size: 11px; color: rgba(0,0,0,0.5); margin-bottom: 2px; }
+    .history-result { font-size: 14px; color: #333; font-weight: 600; }
+    .history-edit-btn { width: 40px; height: 32px; padding: 0; font-size: 18px; display: flex; align-items: center; justify-content: center; border-radius: 4px; flex-shrink: 0; order: -1; background: transparent; border: none; }
+    .history-edit-btn:active { background: rgba(0,0,0,0.05); transform: scale(0.95); }
+    .no-history { text-align: center; color: rgba(0,0,0,0.3); font-size: 11px; padding: 15px; }
+    .display { background: #f8f8f8; border-radius: 12px 12px 0 0; padding: 15px; text-align: right; border: 1px solid #e0e0e0; border-bottom: none; min-height: 100px; display: flex; flex-direction: column; justify-content: flex-end; }
+    .expression { font-size: 16px; color: #999; display: none; cursor: text; }
+    .expression.has-result { display: block; font-size: 18px; color: #666; margin-bottom: 8px; }
+    .result { font-size: 42px; font-weight: 300; color: #1a1a1a; cursor: text; white-space: pre-wrap; word-break: break-all; }
+    .result.editing { background: rgba(255,152,0,0.1); padding: 8px; border-radius: 8px; border: 2px solid #ff9500; font-size: 32px; }
+    .cursor-indicator { display: inline-block; width: 2px; height: 1.2em; background: #ff9500; animation: blink 0.8s infinite; vertical-align: middle; }
+    @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.3; } }
+    .error-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(255,59,48,0.95); color: white; padding: 15px 30px; border-radius: 12px; font-size: 16px; font-weight: 600; z-index: 1000; animation: fadeInOut 1.5s; }
+    @keyframes fadeInOut { 0%, 100% { opacity: 0; } 15%, 85% { opacity: 1; } }
+    .keyboard-section { padding: 0 15px 15px; background: white; }
+    .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    button { border: none; border-radius: 16px; font-size: 24px; font-weight: 500; cursor: pointer; height: 65px; background: #e8e8e8; color: #333; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    button:active { transform: scale(0.92); }
+    .operator { background: #ff9500; color: white; position: relative; }
+    .operator:active { background: #ff8000; }
+    .operator-badge { position: absolute; top: 5px; right: 5px; font-size: 13px; opacity: 0.7; }
+    .equals { background: #34c759; color: white; }
+    .delete { color: #ff6b6b; font-size: 20px; }
   </style>
 </head>
 <body>
   <div class="calculator">
     <div class="history-section" id="historySection">
+      <div class="history-header">
+        <div class="history-title">Lịch sử</div>
+        <button class="clear-history-btn" id="clearHistoryBtn">Xóa lịch sử</button>
+      </div>
       <div class="history-list" id="historyList">
         <div class="no-history">Chưa có lịch sử</div>
       </div>
     </div>
-    
     <div class="display">
       <div class="expression" id="expression"></div>
       <div class="result" id="result">0</div>
     </div>
-
     <div class="keyboard-section">
       <div class="buttons">
         <button class="function" id="acBtn">AC</button>
         <button class="delete" id="delBtn">⌫</button>
         <button class="function" id="openParenBtn">(</button>
         <button class="function" id="closeParenBtn">)</button>
-
         <button class="number" id="btn7">7</button>
         <button class="number" id="btn8">8</button>
         <button class="number" id="btn9">9</button>
         <button class="operator" id="divideBtn">÷<span class="operator-badge">√</span></button>
-
         <button class="number" id="btn4">4</button>
         <button class="number" id="btn5">5</button>
         <button class="number" id="btn6">6</button>
         <button class="operator" id="multiplyBtn">×<span class="operator-badge">^</span></button>
-
         <button class="number" id="btn1">1</button>
         <button class="number" id="btn2">2</button>
         <button class="number" id="btn3">3</button>
         <button class="operator" id="minusBtn">-<span class="operator-badge">%</span></button>
-
         <button class="number" id="btn0">0</button>
         <button class="number" id="btn000">000</button>
         <button class="number" id="btnDot">.</button>
         <button class="operator" id="plusBtn">+</button>
-
         <button class="function" id="leftArrowBtn">◄</button>
         <button class="equals" id="equalsBtn" style="grid-column: span 2;">=</button>
         <button class="function" id="rightArrowBtn">►</button>
       </div>
     </div>
   </div>
-
   <script>
-    // ===== BIẾN TOÀN CỤC =====
-    let currentInput = '0';
-    let currentExpression = '';
-    let calculatedResult = '';
-    let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
-    let justCalculated = false;
-    let cursorPosition = 0;
-    let isEditMode = false;
-
-    // ===== DOM ELEMENTS =====
+    let currentInput = '0', currentExpression = '', history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+    let justCalculated = false, cursorPosition = 0, isEditMode = false;
     const resultDisplay = document.getElementById('result');
     const expressionDisplay = document.getElementById('expression');
     const historyList = document.getElementById('historyList');
     const historySection = document.getElementById('historySection');
 
-    // ===== THÔNG BÁO LỖI =====
-    function showError(message) {
+    function showError(msg) {
       const toast = document.createElement('div');
       toast.className = 'error-toast';
-      toast.textContent = message;
+      toast.textContent = msg;
       document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        toast.remove();
-      }, 1500);
+      setTimeout(() => toast.remove(), 1500);
     }
-    // ===== ÂM THANH =====
+
     let audioContext;
-    function initAudio() {
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      }
-    }
-
     function playClickSound() {
-      initAudio();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.05);
+      if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioContext.createOscillator(), gain = audioContext.createGain();
+      osc.connect(gain); gain.connect(audioContext.destination);
+      osc.frequency.value = 800; gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+      osc.start(); osc.stop(audioContext.currentTime + 0.05);
     }
 
-    // ===== FORMAT NUMBER =====
     function formatNumber(num) {
       if (!num) return '0';
-      const str = num.toString();
-      const parts = str.split('.');
+      const parts = num.toString().split('.');
       parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
       return parts.join('.');
     }
 
-    function removeFormatting(num) {
-      if (!num) return '0';
-      return num.toString().replace(/,/g, '');
-    }
-
-    // ===== CON TRỎ =====
     function updateCursorVisual() {
-	  if (!isEditMode) {
-	  resultDisplay.classList.remove('editing');
-	  resultDisplay.textContent =
-		justCalculated ? "= " + formatNumber(currentInput)
-                   : formatNumber(currentInput);
+      if (!isEditMode) {
+        resultDisplay.classList.remove('editing');
+        resultDisplay.textContent = justCalculated ? "= " + formatNumber(currentInput) : formatNumber(currentInput);
         return;
       }
-      
       resultDisplay.classList.add('editing');
-      
-      // Tạo text node thay vì innerHTML để tránh lỗi con trỏ
-      const text = currentInput;
-      const beforeCursor = text.substring(0, cursorPosition);
-      const afterCursor = text.substring(cursorPosition);
-      
-      // Xóa nội dung cũ
       resultDisplay.innerHTML = '';
-      
-      // Thêm text trước con trỏ
-      if (beforeCursor) {
-        resultDisplay.appendChild(document.createTextNode(beforeCursor));
-      }
-      
-      // Thêm con trỏ
+      const before = currentInput.substring(0, cursorPosition);
+      const after = currentInput.substring(cursorPosition);
+      if (before) resultDisplay.appendChild(document.createTextNode(before));
       const cursor = document.createElement('span');
-      cursor.className = 'cursor-indicator show';
+      cursor.className = 'cursor-indicator';
       cursor.textContent = '|';
       resultDisplay.appendChild(cursor);
-      
-      // Thêm text sau con trỏ
-      if (afterCursor) {
-        resultDisplay.appendChild(document.createTextNode(afterCursor));
-      }
-      
-      // Scroll đến con trỏ nếu cần
-      setTimeout(() => {
-        cursor.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      }, 0);
+      if (after) resultDisplay.appendChild(document.createTextNode(after));
     }
 
     function enableEditMode() {
@@ -517,19 +148,8 @@
       updateCursorVisual();
     }
 
-    function moveCursorLeft() {
-      if (cursorPosition > 0) {
-        cursorPosition--;
-        updateCursorVisual();
-      }
-    }
-
-    function moveCursorRight() {
-      if (cursorPosition < currentInput.length) {
-        cursorPosition++;
-        updateCursorVisual();
-      }
-    }
+    function moveCursorLeft() { if (cursorPosition > 0) { cursorPosition--; updateCursorVisual(); } }
+    function moveCursorRight() { if (cursorPosition < currentInput.length) { cursorPosition++; updateCursorVisual(); } }
 
     function insertAtCursor(char) {
       currentInput = currentInput.slice(0, cursorPosition) + char + currentInput.slice(cursorPosition);
@@ -542,99 +162,55 @@
       if (cursorPosition > 0) {
         currentInput = currentInput.slice(0, cursorPosition - 1) + currentInput.slice(cursorPosition);
         cursorPosition--;
-        if (currentInput === '') currentInput = '0';
+        if (!currentInput) currentInput = '0';
         updateDisplay();
         updateCursorVisual();
       }
     }
 
-    // ===== HIỂN THỊ =====
     function updateDisplay() {
       if (isEditMode) {
-        // Chế độ chỉnh sửa: CHỈ hiển thị 1 dòng ở result, ẨN expression
         expressionDisplay.style.display = 'none';
         expressionDisplay.classList.remove('has-result');
         resultDisplay.textContent = currentInput;
       } else if (justCalculated) {
-        // Sau khi tính: phép tính ở trên, kết quả ở dưới
         expressionDisplay.style.display = 'block';
         expressionDisplay.textContent = formatExpression(currentExpression);
         expressionDisplay.classList.add('has-result');
-        resultDisplay.textContent = "= " + formatNumber(currentInput);  // 👈 chỉ hiện dấu = sau khi tính
+        resultDisplay.textContent = "= " + formatNumber(currentInput);
       } else {
-        // Khi nhập: chỉ hiển thị input ở dưới với format
         expressionDisplay.style.display = 'none';
         expressionDisplay.classList.remove('has-result');
         resultDisplay.textContent = formatInputDisplay(currentInput);
       }
     }
-    
-    // Format số trong phép tính đang nhập (format số lớn hơn 1000)
+
     function formatInputDisplay(input) {
-      let result = input;
-      // Tìm tất cả các số trong chuỗi và format chúng
-      result = result.replace(/\d+/g, (match) => {
-        if (match.length > 3) {
-          return formatNumber(match);
-        }
-        return match;
-      });
-      return result;
+      return input.replace(/\d+/g, m => m.length > 3 ? formatNumber(m) : m);
     }
-    
-    // Format toàn bộ biểu thức (cho expression sau khi tính VÀ trong lịch sử)
+
     function formatExpression(expr) {
-      let result = expr;
-      // Tìm tất cả các số trong biểu thức và format chúng
-      result = result.replace(/\d+/g, (match) => {
-        if (match.length > 3) {
-          return formatNumber(match);
-        }
-        return match;
-      });
-      return result;
+      return expr.replace(/\d+/g, m => m.length > 3 ? formatNumber(m) : m);
     }
 
-    resultDisplay.addEventListener('click', function() {
-      if (justCalculated && currentExpression) {
-        currentInput = currentExpression;
-        justCalculated = false;
-        currentExpression = '';
-      }
-      enableEditMode();
-    });
-    
-    expressionDisplay.addEventListener('click', function() {
-      if (justCalculated && currentExpression) {
-        currentInput = currentExpression;
-        justCalculated = false;
-        currentExpression = '';
-      }
-      enableEditMode();
-    });
+    resultDisplay.addEventListener('click', enableEditMode);
+    expressionDisplay.addEventListener('click', enableEditMode);
 
-    // ===== LỊCH SỬ =====
     function updateHistoryDisplay() {
-      if (history.length === 0) {
+      if (!history.length) {
         historyList.innerHTML = '<div class="no-history">Chưa có lịch sử</div>';
         return;
       }
-
-      historyList.innerHTML = history.map((item, index) => `
-        <div class="history-item-wrapper" id="history-${index}">
-          <div class="history-item">
-            <div class="history-content" onclick="useHistoryResult(${index})">
-              <div class="history-expression">${formatExpression(item.expression)}</div>
-              <div class="history-result">= ${formatNumber(item.result)}</div>
-            </div>
-            <button class="history-edit-btn" onclick="editHistoryExpression(${index}); event.stopPropagation();">✏️</button>
+      historyList.innerHTML = history.map((item, i) => `
+        <div class="history-item">
+          <button class="history-edit-btn" onclick="editHistoryExpression(${i}); event.stopPropagation();">✏️</button>
+          <div class="history-content" onclick="useHistoryResult(${i})">
+            <div class="history-expression">${formatExpression(item.expression)}</div>
+            <div class="history-result">= ${formatNumber(item.result)}</div>
           </div>
         </div>
       `).join('');
-
-      setTimeout(() => {
-        historySection.scrollTop = historySection.scrollHeight;
-      }, 100);
+      setTimeout(() => historySection.scrollTop = historySection.scrollHeight, 100);
     }
 
     function addToHistory(expr, res) {
@@ -645,26 +221,13 @@
     }
 
     function useHistoryResult(index) {
-      const historyItem = history[index];
-      
-      // Nếu đang nhập phép tính (không phải '0' và chưa tính xong)
+      const item = history[index];
       if (currentInput !== '0' && !justCalculated) {
-        const lastChar = currentInput.trim().slice(-1);
-        
-        // Nếu cuối là toán tử hoặc ( hoặc √
-        if (['+', '-', '×', '÷', '^', '(', '√'].includes(lastChar)) {
-          currentInput += historyItem.result;
-        } else if (/[\d)]$/.test(currentInput)) {
-          // Nếu cuối là số hoặc ), tự động thêm +
-          currentInput += ' + ' + historyItem.result;
-        } else {
-          currentInput += historyItem.result;
-        }
-      } else {
-        // Nếu là '0' hoặc vừa tính xong, thay thế
-        currentInput = historyItem.result;
-      }
-      
+        const last = currentInput.trim().slice(-1);
+        if (['+','-','×','÷','^','(','√'].includes(last)) currentInput += item.result;
+        else if (/[\d)]$/.test(currentInput)) currentInput += ' + ' + item.result;
+        else currentInput += item.result;
+      } else currentInput = item.result;
       currentExpression = '';
       justCalculated = false;
       isEditMode = false;
@@ -672,10 +235,9 @@
       updateCursorVisual();
       playClickSound();
     }
-    
+
     function editHistoryExpression(index) {
-      const historyItem = history[index];
-      currentInput = historyItem.expression;
+      currentInput = history[index].expression;
       currentExpression = '';
       justCalculated = false;
       enableEditMode();
@@ -683,87 +245,55 @@
     }
 
     function clearHistory() {
-      // Bỏ chức năng xóa lịch sử
+      if (!history.length) return;
+      if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử?')) {
+        history = [];
+        localStorage.setItem('calcHistory', JSON.stringify(history));
+        updateHistoryDisplay();
+        playClickSound();
+      }
     }
 
-    // ===== NHẬP SỐ =====
     function appendNumber(num) {
       playClickSound();
-      
       if (isEditMode) {
-        // Kiểm tra dấu . trong số hiện tại
         if (num === '.') {
-          const beforeCursor = currentInput.substring(0, cursorPosition);
-          const afterCursor = currentInput.substring(cursorPosition);
-          
-          // Tìm số hiện tại đang nhập (trước con trỏ)
-          const currentNumberMatch = beforeCursor.match(/[\d.]+$/);
-          const currentNumber = currentNumberMatch ? currentNumberMatch[0] : '';
-          
-          // Nếu số hiện tại đã có dấu . thì không cho thêm
-          if (currentNumber.includes('.')) return;
+          const before = currentInput.substring(0, cursorPosition);
+          const match = before.match(/[\d.]+$/);
+          if (match && match[0].includes('.')) return;
         }
-        
-        // Kiểm tra nếu trước số là ), tự động thêm ×
-        const beforeCursor = currentInput.substring(0, cursorPosition);
-        if (beforeCursor && /\)$/.test(beforeCursor)) {
-          insertAtCursor(' × ' + num);
-          return;
-        }
+        const before = currentInput.substring(0, cursorPosition);
+        if (before && /\)$/.test(before)) { insertAtCursor(' × ' + num); return; }
         insertAtCursor(num);
         return;
       }
-      
       if (justCalculated) {
         currentInput = num;
         currentExpression = '';
         justCalculated = false;
       } else {
-        // Kiểm tra dấu . trong số hiện tại đang nhập
         if (num === '.') {
-          // Tìm số cuối cùng trong phép tính
-          const lastNumberMatch = currentInput.match(/[\d.]+$/);
-          const lastNumber = lastNumberMatch ? lastNumberMatch[0] : '';
-          
-          // Nếu số cuối cùng đã có dấu . thì không cho thêm
-          if (lastNumber.includes('.')) return;
+          const match = currentInput.match(/[\d.]+$/);
+          if (match && match[0].includes('.')) return;
         }
-        
-        // Kiểm tra nếu trước số là ), tự động thêm ×
-        if (currentInput && currentInput !== '0' && /\)$/.test(currentInput)) {
-          currentInput += ' × ' + num;
-        } else if (currentInput === '0' && num !== '.') {
-          currentInput = num;
-        } else {
-          currentInput += num;
-        }
+        if (currentInput && currentInput !== '0' && /\)$/.test(currentInput)) currentInput += ' × ' + num;
+        else if (currentInput === '0' && num !== '.') currentInput = num;
+        else currentInput += num;
       }
       updateDisplay();
     }
 
     function deleteLastChar() {
       playClickSound();
-      
-      if (currentInput === '0' || currentInput.length === 1) {
-        currentInput = '0';
-      } else {
-        currentInput = currentInput.slice(0, -1);
-      }
+      if (currentInput === '0' || currentInput.length === 1) currentInput = '0';
+      else currentInput = currentInput.slice(0, -1);
       updateDisplay();
     }
 
     function addOperator(op) {
       playClickSound();
-      
-      if (isEditMode) {
-        insertAtCursor(' ' + op + ' ');
-        return;
-      }
-      
-      if (!currentInput.endsWith(' ')) {
-        currentInput += ' ' + op + ' ';
-      }
-      
+      if (isEditMode) { insertAtCursor(' ' + op + ' '); return; }
+      if (!currentInput.endsWith(' ')) currentInput += ' ' + op + ' ';
       justCalculated = false;
       currentExpression = '';
       updateDisplay();
@@ -771,128 +301,68 @@
 
     function addParenthesis(type) {
       playClickSound();
-      
       if (isEditMode) {
-        // Kiểm tra tự động thêm phép nhân
         if (type === '(') {
-          // Nếu trước ( là số hoặc ), thêm ×
-          const beforeCursor = currentInput.substring(0, cursorPosition);
-          // Chỉ thêm × nếu trước đó là số hoặc )
-          if (beforeCursor && beforeCursor !== '0' && /[\d)]$/.test(beforeCursor)) {
-            insertAtCursor(' × (');
-            return;
-          }
-        } else if (type === ')') {
-          // Nếu sau ) là số hoặc (, thêm ×
-          const afterCursor = currentInput.substring(cursorPosition);
-          if (afterCursor && /^[\d(]/.test(afterCursor)) {
-            insertAtCursor(') × ');
-            return;
-          }
+          const before = currentInput.substring(0, cursorPosition);
+          if (before && before !== '0' && /[\d)]$/.test(before)) { insertAtCursor(' × ('); return; }
+        } else {
+          const after = currentInput.substring(cursorPosition);
+          if (after && /^[\d(]/.test(after)) { insertAtCursor(') × '); return; }
         }
         insertAtCursor(type);
         return;
       }
-      
-      // Không ở chế độ edit
       if (type === '(') {
-        // Xử lý trường hợp đầu tiên hoặc sau toán tử
-        if (currentInput === '0') {
-          currentInput = '(';
-        } else if (currentInput && /[\d)]$/.test(currentInput)) {
-          // Chỉ thêm × nếu trước ( là số hoặc )
-          currentInput += ' × (';
-        } else {
-          currentInput += '(';
-        }
-      } else if (type === ')') {
-        currentInput += ')';
-      }
-      
+        if (currentInput === '0') currentInput = '(';
+        else if (/[\d)]$/.test(currentInput)) currentInput += ' × (';
+        else currentInput += '(';
+      } else currentInput += ')';
       updateDisplay();
     }
 
     function addSpecialOperator(op) {
       playClickSound();
-      
       if (isEditMode) {
         if (op === '√') {
-          // Kiểm tra nếu trước √ là số hoặc ), tự động thêm ×
-          const beforeCursor = currentInput.substring(0, cursorPosition);
-          if (beforeCursor && beforeCursor !== '0' && /[\d)]$/.test(beforeCursor)) {
-            insertAtCursor(' × √');
-          } else {
-            insertAtCursor('√');
-          }
-        } else if (op === '^') {
-          insertAtCursor('^');
-        } else if (op === '%') {
-          insertAtCursor('%');
-        }
+          const before = currentInput.substring(0, cursorPosition);
+          if (before && before !== '0' && /[\d)]$/.test(before)) insertAtCursor(' × √');
+          else insertAtCursor('√');
+        } else insertAtCursor(op);
         return;
       }
-      
       if (op === '√') {
-        // Xử lý trường hợp đầu tiên hoặc sau toán tử
-        if (currentInput === '0') {
-          currentInput = '√';
-        } else if (currentInput && /[\d)]$/.test(currentInput)) {
-          // Chỉ thêm × nếu trước √ là số hoặc )
-          currentInput += ' × √';
-        } else {
-          currentInput += '√';
-        }
-      } else if (op === '^') {
-        currentInput += '^';
-      } else if (op === '%') {
-        currentInput += '%';
-      }
-      
+        if (currentInput === '0') currentInput = '√';
+        else if (/[\d)]$/.test(currentInput)) currentInput += ' × √';
+        else currentInput += '√';
+      } else currentInput += op;
       updateDisplay();
     }
 
     function calculate() {
       playClickSound();
-      
       try {
-        let expr = removeFormatting(currentInput);
-        
-        // Lưu phép tính gốc
+        let expr = currentInput.replace(/,/g, '');
         currentExpression = currentInput;
-        
         expr = expr.replace(/(\d+)%/g, '($1/100)');
-        // Xử lý căn bậc 2: √ theo sau là số hoặc biểu thức trong ngoặc
-        expr = expr.replace(/√\(([^)]+)\)/g, 'Math.sqrt($1)'); // √(...)
-        expr = expr.replace(/√(\d+\.?\d*)/g, 'Math.sqrt($1)'); // √123
-        expr = expr.replace(/×/g, '*');
-        expr = expr.replace(/÷/g, '/');
-        expr = expr.replace(/\^/g, '**');
-
-        const calculatedResult = eval(expr);
-        
-        if (!isFinite(calculatedResult)) {
-          // Lỗi: giữ nguyên phép tính để sửa
+        expr = expr.replace(/√\(([^)]+)\)/g, 'Math.sqrt($1)');
+        expr = expr.replace(/√(\d+\.?\d*)/g, 'Math.sqrt($1)');
+        expr = expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '**');
+        const result = eval(expr);
+        if (!isFinite(result)) {
           showError('Lỗi: Phép tính không hợp lệ');
           currentExpression = '';
           enableEditMode();
           return;
         }
-
-        let resultStr = calculatedResult.toString();
-        
-        if (resultStr.length > 15) {
-          resultStr = parseFloat(resultStr).toFixed(8).replace(/\.?0+$/, '');
-        }
-
+        let resultStr = result.toString();
+        if (resultStr.length > 15) resultStr = parseFloat(resultStr).toFixed(8).replace(/\.?0+$/, '');
         addToHistory(currentExpression, resultStr);
-
         currentInput = resultStr;
         justCalculated = true;
         isEditMode = false;
         updateDisplay();
         updateCursorVisual();
-      } catch (error) {
-        // Lỗi: giữ nguyên phép tính để sửa
+      } catch {
         showError('Lỗi: Cú pháp không đúng');
         currentExpression = '';
         enableEditMode();
@@ -909,144 +379,65 @@
       updateCursorVisual();
     }
 
-    // ===== LONG PRESS =====
-    // Nhấn giữ ⌫ để xóa nhanh
-    let delTimer, delInterval;
-    let delLongPress = false;
-    
+    let delTimer, delInterval, delLongPress = false;
     function startDelLongPress() {
       delLongPress = false;
       delTimer = setTimeout(() => {
         delLongPress = true;
-        navigator.vibrate && navigator.vibrate(20);
-        delInterval = setInterval(() => {
-          if (isEditMode) {
-            deleteAtCursor();
-          } else {
-            deleteLastChar();
-          }
-          navigator.vibrate && navigator.vibrate(5);
-        }, 100);
+        delInterval = setInterval(() => { isEditMode ? deleteAtCursor() : deleteLastChar(); }, 100);
       }, 500);
     }
-    
     function stopDelLongPress() {
       clearTimeout(delTimer);
       clearInterval(delInterval);
-      if (!delLongPress) {
-        // Nhấn ngắn: xóa 1 ký tự
-        if (isEditMode) {
-          deleteAtCursor();
-        } else {
-          deleteLastChar();
-        }
-      }
+      if (!delLongPress) isEditMode ? deleteAtCursor() : deleteLastChar();
       delLongPress = false;
     }
-    
     document.getElementById('delBtn').addEventListener('touchstart', startDelLongPress);
     document.getElementById('delBtn').addEventListener('touchend', stopDelLongPress);
     document.getElementById('delBtn').addEventListener('mousedown', startDelLongPress);
     document.getElementById('delBtn').addEventListener('mouseup', stopDelLongPress);
-    document.getElementById('delBtn').addEventListener('touchmove', stopDelLongPress);
-    
-    // Nhấn giữ ◄ để di chuyển con trỏ nhanh sang trái
-    let leftTimer, leftInterval, leftLongPress = false;
-    
+
+    let leftTimer, leftInterval;
     function startLeftLongPress() {
-      leftLongPress = false;
-      leftTimer = setTimeout(() => {
-        leftLongPress = true;
-        navigator.vibrate && navigator.vibrate(20);
-        leftInterval = setInterval(() => {
-          moveCursorLeft();
-          navigator.vibrate && navigator.vibrate(5);
-        }, 100);
-      }, 500);
+      leftTimer = setTimeout(() => { leftInterval = setInterval(moveCursorLeft, 100); }, 500);
     }
-    
-    function stopLeftLongPress() {
-      clearTimeout(leftTimer);
-      clearInterval(leftInterval);
-      leftLongPress = false;
-    }
-    
+    function stopLeftLongPress() { clearTimeout(leftTimer); clearInterval(leftInterval); }
     document.getElementById('leftArrowBtn').addEventListener('touchstart', startLeftLongPress);
     document.getElementById('leftArrowBtn').addEventListener('touchend', stopLeftLongPress);
-    document.getElementById('leftArrowBtn').addEventListener('mousedown', startLeftLongPress);
-    document.getElementById('leftArrowBtn').addEventListener('mouseup', stopLeftLongPress);
-    document.getElementById('leftArrowBtn').addEventListener('touchmove', stopLeftLongPress);
-    
-    // Nhấn giữ ► để di chuyển con trỏ nhanh sang phải
-    let rightTimer, rightInterval, rightLongPress = false;
-    
+
+    let rightTimer, rightInterval;
     function startRightLongPress() {
-      rightLongPress = false;
-      rightTimer = setTimeout(() => {
-        rightLongPress = true;
-        navigator.vibrate && navigator.vibrate(20);
-        rightInterval = setInterval(() => {
-          moveCursorRight();
-          navigator.vibrate && navigator.vibrate(5);
-        }, 100);
-      }, 500);
+      rightTimer = setTimeout(() => { rightInterval = setInterval(moveCursorRight, 100); }, 500);
     }
-    
-    function stopRightLongPress() {
-      clearTimeout(rightTimer);
-      clearInterval(rightInterval);
-      rightLongPress = false;
-    }
-    
+    function stopRightLongPress() { clearTimeout(rightTimer); clearInterval(rightInterval); }
     document.getElementById('rightArrowBtn').addEventListener('touchstart', startRightLongPress);
     document.getElementById('rightArrowBtn').addEventListener('touchend', stopRightLongPress);
-    document.getElementById('rightArrowBtn').addEventListener('mousedown', startRightLongPress);
-    document.getElementById('rightArrowBtn').addEventListener('mouseup', stopRightLongPress);
-    document.getElementById('rightArrowBtn').addEventListener('touchmove', stopRightLongPress);
 
-    let divTimer, divInterval, divLongPress = false;
+    let divTimer, divLongPress = false;
     document.getElementById('divideBtn').addEventListener('touchstart', () => {
       divLongPress = false;
-      divTimer = setTimeout(() => {
-        divLongPress = true;
-        addSpecialOperator('√');
-      }, 500);
+      divTimer = setTimeout(() => { divLongPress = true; addSpecialOperator('√'); }, 500);
     });
     document.getElementById('divideBtn').addEventListener('touchend', () => clearTimeout(divTimer));
-    document.getElementById('divideBtn').onclick = (e) => {
-      if (!divLongPress) addOperator('÷');
-      e.preventDefault();
-    };
+    document.getElementById('divideBtn').onclick = () => { if (!divLongPress) addOperator('÷'); };
 
     let multTimer, multLongPress = false;
     document.getElementById('multiplyBtn').addEventListener('touchstart', () => {
       multLongPress = false;
-      multTimer = setTimeout(() => {
-        multLongPress = true;
-        addSpecialOperator('^');
-      }, 500);
+      multTimer = setTimeout(() => { multLongPress = true; addSpecialOperator('^'); }, 500);
     });
     document.getElementById('multiplyBtn').addEventListener('touchend', () => clearTimeout(multTimer));
-    document.getElementById('multiplyBtn').onclick = (e) => {
-      if (!multLongPress) addOperator('×');
-      e.preventDefault();
-    };
+    document.getElementById('multiplyBtn').onclick = () => { if (!multLongPress) addOperator('×'); };
 
     let minusTimer, minusLongPress = false;
     document.getElementById('minusBtn').addEventListener('touchstart', () => {
       minusLongPress = false;
-      minusTimer = setTimeout(() => {
-        minusLongPress = true;
-        addSpecialOperator('%');
-      }, 500);
+      minusTimer = setTimeout(() => { minusLongPress = true; addSpecialOperator('%'); }, 500);
     });
     document.getElementById('minusBtn').addEventListener('touchend', () => clearTimeout(minusTimer));
-    document.getElementById('minusBtn').onclick = (e) => {
-      if (!minusLongPress) addOperator('-');
-      e.preventDefault();
-    };
+    document.getElementById('minusBtn').onclick = () => { if (!minusLongPress) addOperator('-'); };
 
-    // ===== SETUP BUTTONS =====
     document.getElementById('btn7').onclick = () => appendNumber('7');
     document.getElementById('btn8').onclick = () => appendNumber('8');
     document.getElementById('btn9').onclick = () => appendNumber('9');
@@ -1059,36 +450,15 @@
     document.getElementById('btn0').onclick = () => appendNumber('0');
     document.getElementById('btn000').onclick = () => appendNumber('000');
     document.getElementById('btnDot').onclick = () => appendNumber('.');
-    
     document.getElementById('openParenBtn').onclick = () => addParenthesis('(');
     document.getElementById('closeParenBtn').onclick = () => addParenthesis(')');
     document.getElementById('plusBtn').onclick = () => addOperator('+');
     document.getElementById('equalsBtn').onclick = calculate;
     document.getElementById('acBtn').onclick = clearAll;
-    
-    // Nút mũi tên trái - di chuyển con trỏ
-    document.getElementById('leftArrowBtn').onclick = () => {
-      if (!leftLongPress) {
-        playClickSound();
-        if (!isEditMode) {
-          enableEditMode();
-        }
-        moveCursorLeft();
-      }
-    };
-    
-    // Nút mũi tên phải - di chuyển con trỏ
-    document.getElementById('rightArrowBtn').onclick = () => {
-      if (!rightLongPress) {
-        playClickSound();
-        if (!isEditMode) {
-          enableEditMode();
-        }
-        moveCursorRight();
-      }
-    };
+    document.getElementById('leftArrowBtn').onclick = () => { playClickSound(); if (!isEditMode) enableEditMode(); moveCursorLeft(); };
+    document.getElementById('rightArrowBtn').onclick = () => { playClickSound(); if (!isEditMode) enableEditMode(); moveCursorRight(); };
+    document.getElementById('clearHistoryBtn').onclick = clearHistory;
 
-    // ===== KHỞI TẠO =====
     updateDisplay();
     updateHistoryDisplay();
   </script>
