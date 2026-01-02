@@ -25,10 +25,6 @@
       overflow: hidden;
       user-select: none;
       -webkit-user-select: none;
-      position: fixed;
-      width: 100%;
-      top: 0;
-      left: 0;
     }
 
     .calculator {
@@ -41,12 +37,13 @@
     }
 
     .history-section {
-      flex: 0 0 auto;
+      flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 10px 15px 5px 15px;
+      padding: 10px 15px;
       padding-top: calc(10px + env(safe-area-inset-top));
-      max-height: 280px;
+      min-height: 0;
+      max-height: calc(100vh - 450px);
     }
 
     .history-list {
@@ -95,24 +92,20 @@
       line-height: 1.2;
     }
     
-    .history-edit-btn {
-      background: transparent;
-      color: #999;
-      border: none;
-      padding: 2px 4px;
-      border-radius: 3px;
-      font-size: 10px;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: all 0.15s ease;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      height: 14px;
-    }
+	.history-edit-btn {
+     width: 40px;          /* cố định chiều rộng nút */
+     height: 32px;         /* cố định chiều cao nút → không làm dòng cao hơn */
+     padding: 0;
+     font-size: 18px;      /* icon ✏️ to hơn */
+     display: flex;
+	 align-items: center;
+	 justify-content: center;
+	 border-radius: 4px;   /* trước có thể là 6px → giờ sẽ vuông hơn */
+}
+
     
     .history-edit-btn:active {
-      background: rgba(0, 0, 0, 0.08);
+      background: rgba(0, 0, 0, 0.05);
       transform: scale(0.95);
     }
 
@@ -136,7 +129,6 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      margin-bottom: 380px;
     }
 
     .expression {
@@ -176,10 +168,10 @@
     }
     
     .result.editing {
-      background: rgba(200, 200, 200, 0.15);
+      background: rgba(255, 152, 0, 0.1);
       padding: 8px;
       border-radius: 8px;
-      border: 2px solid #999;
+      border: 2px solid #ff9500;
       font-size: 32px;
       min-height: 50px;
     }
@@ -188,7 +180,7 @@
       display: inline-block;
       width: 2px;
       height: 1.2em;
-      background: #666;
+      background: #ff9500;
       animation: blink 0.8s infinite;
       pointer-events: none;
       vertical-align: middle;
@@ -223,17 +215,10 @@
     }
 
     .keyboard-section {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      max-width: 500px;
-      margin: 0 auto;
       padding: 0 15px 15px 15px;
       padding-bottom: calc(15px + env(safe-area-inset-bottom));
       flex-shrink: 0;
       background: white;
-      z-index: 100;
     }
 
     .buttons {
@@ -480,9 +465,11 @@
 
     // ===== CON TRỎ =====
     function updateCursorVisual() {
-      if (!isEditMode) {
-        resultDisplay.classList.remove('editing');
-        resultDisplay.textContent = formatNumber(currentInput);
+	  if (!isEditMode) {
+	  resultDisplay.classList.remove('editing');
+	  resultDisplay.textContent =
+		justCalculated ? "= " + formatNumber(currentInput)
+                   : formatNumber(currentInput);
         return;
       }
       
@@ -573,7 +560,7 @@
         expressionDisplay.style.display = 'block';
         expressionDisplay.textContent = formatExpression(currentExpression);
         expressionDisplay.classList.add('has-result');
-        resultDisplay.textContent = formatNumber(currentInput);
+        resultDisplay.textContent = "= " + formatNumber(currentInput);  // 👈 chỉ hiện dấu = sau khi tính
       } else {
         // Khi nhập: chỉ hiển thị input ở dưới với format
         expressionDisplay.style.display = 'none';
@@ -662,18 +649,15 @@
       
       // Nếu đang nhập phép tính (không phải '0' và chưa tính xong)
       if (currentInput !== '0' && !justCalculated) {
-        // Kiểm tra ký tự cuối cùng của phép tính
         const lastChar = currentInput.trim().slice(-1);
         
-        // Nếu cuối là toán tử (+, -, ×, ÷, ^) hoặc (
+        // Nếu cuối là toán tử hoặc ( hoặc √
         if (['+', '-', '×', '÷', '^', '(', '√'].includes(lastChar)) {
-          // Chỉ cần thêm số vào
           currentInput += historyItem.result;
         } else if (/[\d)]$/.test(currentInput)) {
-          // Nếu cuối là số hoặc ), tự động thêm toán tử +
+          // Nếu cuối là số hoặc ), tự động thêm +
           currentInput += ' + ' + historyItem.result;
         } else {
-          // Các trường hợp khác
           currentInput += historyItem.result;
         }
       } else {
