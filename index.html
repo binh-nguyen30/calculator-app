@@ -97,6 +97,23 @@
   <script>
     let currentInput = '0', currentExpression = '', history = JSON.parse(localStorage.getItem('calcHistory')) || [];
     let justCalculated = false, cursorPosition = 0, isEditMode = false;
+    
+    // Thêm lịch sử mẫu để test (xóa đoạn này sau khi test xong)
+    if (history.length === 0) {
+      history = [
+        {expression: '100 + 200', result: '300'},
+        {expression: '500 - 250', result: '250'},
+        {expression: '10 × 20', result: '200'},
+        {expression: '1000 ÷ 5', result: '200'},
+        {expression: '2 ^ 10', result: '1024'},
+        {expression: '√144', result: '12'},
+        {expression: '50%', result: '0.5'},
+        {expression: '(10 + 20) × 3', result: '90'},
+        {expression: '999 + 1', result: '1000'},
+        {expression: '5000 - 2500', result: '2500'}
+      ];
+      localStorage.setItem('calcHistory', JSON.stringify(history));
+    }
     const resultDisplay = document.getElementById('result');
     const expressionDisplay = document.getElementById('expression');
     const historyList = document.getElementById('historyList');
