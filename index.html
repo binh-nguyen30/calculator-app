@@ -104,6 +104,9 @@
       justify-content: center;
       border-radius: 4px;
       flex-shrink: 0;
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
 
     .history-edit-btn:active {
@@ -426,6 +429,7 @@
         toast.remove();
       }, 1500);
     }
+
     // ===== ÂM THANH =====
     let audioContext;
     function initAudio() {
@@ -470,40 +474,31 @@
     function updateCursorVisual() {
       if (!isEditMode) {
         resultDisplay.classList.remove('editing');
-        resultDisplay.textContent =
-          justCalculated ? "= " + formatNumber(currentInput)
-                     : formatNumber(currentInput);
+        resultDisplay.textContent = justCalculated ? "= " + formatNumber(currentInput) : formatNumber(currentInput);
         return;
       }
       
       resultDisplay.classList.add('editing');
       
-      // Tạo text node thay vì innerHTML để tránh lỗi con trỏ
       const text = currentInput;
       const beforeCursor = text.substring(0, cursorPosition);
       const afterCursor = text.substring(cursorPosition);
       
-      // Xóa nội dung cũ
       resultDisplay.innerHTML = '';
       
-      // Thêm text trước con trỏ
       if (beforeCursor) {
         resultDisplay.appendChild(document.createTextNode(beforeCursor));
       }
       
-      // Thêm con trỏ
       const cursor = document.createElement('span');
       cursor.className = 'cursor-indicator show';
       cursor.textContent = '|';
       resultDisplay.appendChild(cursor);
-
       
-      // Thêm text sau con trỏ
       if (afterCursor) {
         resultDisplay.appendChild(document.createTextNode(afterCursor));
       }
       
-      // Scroll đến con trỏ nếu cần
       setTimeout(() => {
         cursor.scrollIntoView({ block: 'nearest', inline: 'nearest' });
       }, 0);
@@ -555,28 +550,23 @@
     // ===== HIỂN THỊ =====
     function updateDisplay() {
       if (isEditMode) {
-        // Chế độ chỉnh sửa: CHỈ hiển thị 1 dòng ở result, ẨN expression
         expressionDisplay.style.display = 'none';
         expressionDisplay.classList.remove('has-result');
         resultDisplay.textContent = currentInput;
       } else if (justCalculated) {
-        // Sau khi tính: phép tính ở trên, kết quả ở dưới
         expressionDisplay.style.display = 'block';
         expressionDisplay.textContent = formatExpression(currentExpression);
         expressionDisplay.classList.add('has-result');
         resultDisplay.textContent = "= " + formatNumber(currentInput);
       } else {
-        // Khi nhập: chỉ hiển thị input ở dưới với format
         expressionDisplay.style.display = 'none';
         expressionDisplay.classList.remove('has-result');
         resultDisplay.textContent = formatInputDisplay(currentInput);
       }
     }
     
-    // Format số trong phép tính đang nhập (format số lớn hơn 1000)
     function formatInputDisplay(input) {
       let result = input;
-      // Tìm tất cả các số trong chuỗi và format chúng
       result = result.replace(/\d+/g, (match) => {
         if (match.length > 3) {
           return formatNumber(match);
@@ -586,10 +576,8 @@
       return result;
     }
     
-    // Format toàn bộ biểu thức (cho expression sau khi tính VÀ trong lịch sử)
     function formatExpression(expr) {
       let result = expr;
-      // Tìm tất cả các số trong biểu thức và format chúng
       result = result.replace(/\d+/g, (match) => {
         if (match.length > 3) {
           return formatNumber(match);
@@ -651,21 +639,17 @@
     function useHistoryResult(index) {
       const historyItem = history[index];
       
-      // Nếu đang nhập phép tính (không phải '0' và chưa tính xong)
       if (currentInput !== '0' && !justCalculated) {
         const lastChar = currentInput.trim().slice(-1);
         
-        // Nếu cuối là toán tử hoặc ( hoặc √
         if (['+', '-', '×', '÷', '^', '(', '√'].includes(lastChar)) {
           currentInput += historyItem.result;
         } else if (/[\d)]$/.test(currentInput)) {
-          // Nếu cuối là số hoặc ), tự động thêm +
           currentInput += ' + ' + historyItem.result;
         } else {
           currentInput += historyItem.result;
         }
       } else {
-        // Nếu là '0' hoặc vừa tính xong, thay thế
         currentInput = historyItem.result;
       }
       
@@ -686,29 +670,19 @@
       playClickSound();
     }
 
-    function clearHistory() {
-      // Bỏ chức năng xóa lịch sử
-    }
-
     // ===== NHẬP SỐ =====
     function appendNumber(num) {
       playClickSound();
       
       if (isEditMode) {
-        // Kiểm tra dấu . trong số hiện tại
         if (num === '.') {
           const beforeCursor = currentInput.substring(0, cursorPosition);
-          const afterCursor = currentInput.substring(cursorPosition);
-          
-          // Tìm số hiện tại đang nhập (trước con trỏ)
           const currentNumberMatch = beforeCursor.match(/[\d.]+$/);
           const currentNumber = currentNumberMatch ? currentNumberMatch[0] : '';
           
-          // Nếu số hiện tại đã có dấu . thì không cho thêm
           if (currentNumber.includes('.')) return;
         }
         
-        // Kiểm tra nếu trước số là ), tự động thêm ×
         const beforeCursor = currentInput.substring(0, cursorPosition);
         if (beforeCursor && /\)$/.test(beforeCursor)) {
           insertAtCursor(' × ' + num);
@@ -723,17 +697,13 @@
         currentExpression = '';
         justCalculated = false;
       } else {
-        // Kiểm tra dấu . trong số hiện tại đang nhập
         if (num === '.') {
-          // Tìm số cuối cùng trong phép tính
           const lastNumberMatch = currentInput.match(/[\d.]+$/);
           const lastNumber = lastNumberMatch ? lastNumberMatch[0] : '';
           
-          // Nếu số cuối cùng đã có dấu . thì không cho thêm
           if (lastNumber.includes('.')) return;
         }
         
-        // Kiểm tra nếu trước số là ), tự động thêm ×
         if (currentInput && currentInput !== '0' && /\)$/.test(currentInput)) {
           currentInput += ' × ' + num;
         } else if (currentInput === '0' && num !== '.') {
@@ -777,17 +747,13 @@
       playClickSound();
       
       if (isEditMode) {
-        // Kiểm tra tự động thêm phép nhân
         if (type === '(') {
-          // Nếu trước ( là số hoặc ), thêm ×
           const beforeCursor = currentInput.substring(0, cursorPosition);
-          // Chỉ thêm × nếu trước đó là số hoặc )
           if (beforeCursor && beforeCursor !== '0' && /[\d)]$/.test(beforeCursor)) {
             insertAtCursor(' × (');
             return;
           }
         } else if (type === ')') {
-          // Nếu sau ) là số hoặc (, thêm ×
           const afterCursor = currentInput.substring(cursorPosition);
           if (afterCursor && /^[\d(]/.test(afterCursor)) {
             insertAtCursor(') × ');
@@ -798,13 +764,10 @@
         return;
       }
       
-      // Không ở chế độ edit
       if (type === '(') {
-        // Xử lý trường hợp đầu tiên hoặc sau toán tử
         if (currentInput === '0') {
           currentInput = '(';
         } else if (currentInput && /[\d)]$/.test(currentInput)) {
-          // Chỉ thêm × nếu trước ( là số hoặc )
           currentInput += ' × (';
         } else {
           currentInput += '(';
@@ -821,7 +784,6 @@
       
       if (isEditMode) {
         if (op === '√') {
-          // Kiểm tra nếu trước √ là số hoặc ), tự động thêm ×
           const beforeCursor = currentInput.substring(0, cursorPosition);
           if (beforeCursor && beforeCursor !== '0' && /[\d)]$/.test(beforeCursor)) {
             insertAtCursor(' × √');
@@ -837,11 +799,9 @@
       }
       
       if (op === '√') {
-        // Xử lý trường hợp đầu tiên hoặc sau toán tử
         if (currentInput === '0') {
           currentInput = '√';
         } else if (currentInput && /[\d)]$/.test(currentInput)) {
-          // Chỉ thêm × nếu trước √ là số hoặc )
           currentInput += ' × √';
         } else {
           currentInput += '√';
@@ -861,13 +821,11 @@
       try {
         let expr = removeFormatting(currentInput);
         
-        // Lưu phép tính gốc
         currentExpression = currentInput;
         
         expr = expr.replace(/(\d+)%/g, '($1/100)');
-        // Xử lý căn bậc 2: √ theo sau là số hoặc biểu thức trong ngoặc
-        expr = expr.replace(/√\(([^)]+)\)/g, 'Math.sqrt($1)'); // √(...)
-        expr = expr.replace(/√(\d+\.?\d*)/g, 'Math.sqrt($1)'); // √123
+        expr = expr.replace(/√\(([^)]+)\)/g, 'Math.sqrt($1)');
+        expr = expr.replace(/√(\d+\.?\d*)/g, 'Math.sqrt($1)');
         expr = expr.replace(/×/g, '*');
         expr = expr.replace(/÷/g, '/');
         expr = expr.replace(/\^/g, '**');
@@ -875,7 +833,6 @@
         const calculatedResult = eval(expr);
         
         if (!isFinite(calculatedResult)) {
-          // Lỗi: giữ nguyên phép tính để sửa
           showError('Lỗi: Phép tính không hợp lệ');
           currentExpression = '';
           enableEditMode();
@@ -884,4 +841,102 @@
 
         let resultStr = calculatedResult.toString();
         
-        if (resultStr.length >
+        if (resultStr.length > 15) {
+          resultStr = parseFloat(resultStr).toFixed(8).replace(/\.?0+$/, '');
+        }
+
+        addToHistory(currentExpression, resultStr);
+
+        currentInput = resultStr;
+        justCalculated = true;
+        isEditMode = false;
+        updateDisplay();
+        updateCursorVisual();
+      } catch (error) {
+        showError('Lỗi: Cú pháp không đúng');
+        currentExpression = '';
+        enableEditMode();
+      }
+    }
+
+    function clearAll() {
+      playClickSound();
+      currentInput = '0';
+      currentExpression = '';
+      justCalculated = false;
+      isEditMode = false;
+      updateDisplay();
+      updateCursorVisual();
+    }
+
+    // ===== LONG PRESS =====
+    let delTimer, delInterval;
+    let delLongPress = false;
+    
+    function startDelLongPress() {
+      delLongPress = false;
+      delTimer = setTimeout(() => {
+        delLongPress = true;
+        navigator.vibrate && navigator.vibrate(20);
+        delInterval = setInterval(() => {
+          if (isEditMode) {
+            deleteAtCursor();
+          } else {
+            deleteLastChar();
+          }
+          navigator.vibrate && navigator.vibrate(5);
+        }, 100);
+      }, 500);
+    }
+    
+    function stopDelLongPress() {
+      clearTimeout(delTimer);
+      clearInterval(delInterval);
+      if (!delLongPress) {
+        if (isEditMode) {
+          deleteAtCursor();
+        } else {
+          deleteLastChar();
+        }
+      }
+      delLongPress = false;
+    }
+    
+    document.getElementById('delBtn').addEventListener('touchstart', startDelLongPress);
+    document.getElementById('delBtn').addEventListener('touchend', stopDelLongPress);
+    document.getElementById('delBtn').addEventListener('mousedown', startDelLongPress);
+    document.getElementById('delBtn').addEventListener('mouseup', stopDelLongPress);
+    document.getElementById('delBtn').addEventListener('touchmove', stopDelLongPress);
+    
+    let leftTimer, leftInterval, leftLongPress = false;
+    
+    function startLeftLongPress() {
+      leftLongPress = false;
+      leftTimer = setTimeout(() => {
+        leftLongPress = true;
+        navigator.vibrate && navigator.vibrate(20);
+        leftInterval = setInterval(() => {
+          moveCursorLeft();
+          navigator.vibrate && navigator.vibrate(5);
+        }, 100);
+      }, 500);
+    }
+    
+    function stopLeftLongPress() {
+      clearTimeout(leftTimer);
+      clearInterval(leftInterval);
+      leftLongPress = false;
+    }
+    
+    document.getElementById('leftArrowBtn').addEventListener('touchstart', startLeftLongPress);
+    document.getElementById('leftArrowBtn').addEventListener('touchend', stopLeftLongPress);
+    document.getElementById('leftArrowBtn').addEventListener('mousedown', startLeftLongPress);
+    document.getElementById('leftArrowBtn').addEventListener('mouseup', stopLeftLongPress);
+    document.getElementById('leftArrowBtn').addEventListener('touchmove', stopLeftLongPress);
+    
+    let rightTimer, rightInterval, rightLongPress = false;
+    
+    function startRightLongPress() {
+      rightLongPress = false;
+      rightTimer = setTimeout(() => {
+        right
