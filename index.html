@@ -55,11 +55,11 @@
 <body>
   <div class="calculator">
     <div class="history-section" id="historySection">
+      <div class="history-header">
+        <div class="history-title">Lịch sử</div>
+        <button class="clear-history-btn" id="clearHistoryBtn">Xóa lịch sử</button>
+      </div>
       <div class="history-list" id="historyList">
-        <div class="history-header">
-          <div class="history-title">Lịch sử</div>
-          <button class="clear-history-btn" id="clearHistoryBtn">Xóa lịch sử</button>
-        </div>
         <div class="no-history">Chưa có lịch sử</div>
       </div>
     </div>
@@ -208,22 +208,10 @@
 
     function updateHistoryDisplay() {
       if (!history.length) {
-        historyList.innerHTML = `
-          <div class="history-header">
-            <div class="history-title">Lịch sử</div>
-            <button class="clear-history-btn" id="clearHistoryBtn">Xóa lịch sử</button>
-          </div>
-          <div class="no-history">Chưa có lịch sử</div>
-        `;
-        document.getElementById('clearHistoryBtn').onclick = clearHistory;
+        historyList.innerHTML = '<div class="no-history">Chưa có lịch sử</div>';
         return;
       }
-      historyList.innerHTML = `
-        <div class="history-header">
-          <div class="history-title">Lịch sử</div>
-          <button class="clear-history-btn" id="clearHistoryBtn">Xóa lịch sử</button>
-        </div>
-      ` + history.map((item, i) => `
+      historyList.innerHTML = history.map((item, i) => `
         <div class="history-item">
           <button class="history-edit-btn" onclick="editHistoryExpression(${i}); event.stopPropagation();">✏️</button>
           <div class="history-content" onclick="useHistoryResult(${i})">
@@ -232,7 +220,6 @@
           </div>
         </div>
       `).join('');
-      document.getElementById('clearHistoryBtn').onclick = clearHistory;
       setTimeout(() => {
         historySection.scrollTo({
           top: historySection.scrollHeight,
@@ -485,6 +472,7 @@
     document.getElementById('acBtn').onclick = clearAll;
     document.getElementById('leftArrowBtn').onclick = () => { playClickSound(); if (!isEditMode) enableEditMode(); moveCursorLeft(); };
     document.getElementById('rightArrowBtn').onclick = () => { playClickSound(); if (!isEditMode) enableEditMode(); moveCursorRight(); };
+    document.getElementById('clearHistoryBtn').onclick = clearHistory;
 
     updateDisplay();
     updateHistoryDisplay();
